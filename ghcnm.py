@@ -27,9 +27,9 @@ def get_station_start_and_end_year(temp_data_for_station):
 # Read .dat file and parse into a usable dataframe, replacing -9999 with NaN
 def get_ghcnm_by_station(url):
 
-  colspecs = [ (0,11), (11,15), (15,19) ]
+  colspecs = [ (0, 2), (0,11), (11,15), (15,19) ]
 
-  names = ['station_id', 'year', 'element']
+  names = ['country_code', 'station_id', 'year', 'element']
 
   i = 19
 
@@ -51,9 +51,9 @@ def get_ghcnm_by_station(url):
 
   ghcnm_dataframe.replace(to_replace=MISSING_VALUE, value=math.nan, inplace=True)
 
-  ghcnm_dataframe_by_station = ghcnm_dataframe.groupby(['station_id'])
+  # ghcnm_dataframe_by_station_by_country = ghcnm_dataframe.groupby(['country_code', 'station_id'])
 
-  return ghcnm_dataframe_by_station
+  return ghcnm_dataframe
 
 # Create a range of years based on the Developer's configuration and fill it with the matching data from the station's temperature readings by month after first removing flagged or unwanted data
 def fit_permitted_data_to_range(temp_data_for_station):

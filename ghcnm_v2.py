@@ -15,8 +15,8 @@ def get_permitted_reading(month_grouping):
   return ghcnm_v1.get_permitted_reading(month_grouping)
 
 def get_station_start_and_end_year(temp_data_for_station):
-  start_year = temp_data_for_station.iloc[0][1]
-  end_year = temp_data_for_station.iloc[len(temp_data_for_station) - 1][1]
+  start_year = temp_data_for_station.iloc[0][2]
+  end_year = temp_data_for_station.iloc[len(temp_data_for_station) - 1][2]
 
   return start_year, end_year
 
@@ -24,10 +24,12 @@ def parse_temperature_row(row):
 
   usable_row = []
 
+  COUNTRY_CODE = str(row[0:2])
   ID = str(row[0:11])
   YEAR = int(row[11:15])
   ELEMENT = row[15:19]
 
+  usable_row.append(COUNTRY_CODE)
   usable_row.append(ID)
   usable_row.append(YEAR)
 
@@ -69,9 +71,9 @@ def get_ghcnm_by_station(url):
 
   ghcnm_dataframe = pd.DataFrame(file_rows)
 
-  ghcnm_dataframe_by_station = ghcnm_dataframe.groupby([0])
+  # ghcnm_dataframe_by_station_by_country = ghcnm_dataframe.groupby([1])
 
-  return ghcnm_dataframe_by_station
+  return ghcnm_dataframe
 
 # Create a range of years based on the Developer's configuration and fill it with the matching data from the station's temperature readings by month after first removing flagged or unwanted data
 def fit_permitted_data_to_range(temp_data_for_station):
@@ -95,7 +97,7 @@ def fit_permitted_data_to_range(temp_data_for_station):
   for year in range(YEAR_RANGE_START, YEAR_RANGE_END):
 
     # Check if the station's temperature data includes this year
-    matching_row = temp_data_for_station.loc[temp_data_for_station[1] == year]
+    matching_row = temp_data_for_station.loc[temp_data_for_station[2] == year]
 
     # If the station has data for this year
     if not matching_row.empty:
@@ -103,7 +105,7 @@ def fit_permitted_data_to_range(temp_data_for_station):
       # For each month of the year
       for month_iteration, month_class in enumerate(absolute_temperatures_by_month):
 
-        month = 2 + month_iteration
+        month = 3 + month_iteration
 
         # Select the equivalent columns for that month from the station data
         month_grouping = matching_row[month].to_numpy()[0]

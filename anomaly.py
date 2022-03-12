@@ -82,9 +82,9 @@ def calculate_anomalies_by_month_class(temperatures_by_month, reference_averages
   return pd.DataFrame(anomalies_by_month, columns=range(YEAR_RANGE_START, YEAR_RANGE_END))
 
 
-def average_monthly_anomalies_by_year(lists_of_anomalies):
+def average_monthly_anomalies_by_year(lists_of_anomalies, axis=0):
 
-  average_anomalies_by_year = lists_of_anomalies.mean(axis=0, skipna=True, level=None, numeric_only=True).round(2)
+  average_anomalies_by_year = lists_of_anomalies.mean(axis=axis, skipna=True, level=None, numeric_only=True).round(2)
 
   return average_anomalies_by_year
 

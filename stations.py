@@ -6,6 +6,7 @@ https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
 '''
 
 unknown_unaddress_text = 'Unknown'
+country_code_df = False
 
 def get_stations(station_file_name, country_codes_file_name):
 
@@ -24,9 +25,15 @@ def get_stations(station_file_name, country_codes_file_name):
 
 def merge_with_country_names(stations, country_codes_file_name):
 
+  global country_code_df
+
   country_code_df = pd.read_fwf(country_codes_file_name, widths=[3,45], names=['country_code','country'])
 
   return pd.merge(stations, country_code_df, on='country_code', how='outer')
+
+def get_country_name_from_code(country_code):
+
+  return country_code_df.loc[country_code_df['country_code'] == country_code].to_numpy()[0][1]
 
 
 def get_station_address(station_id, stations):
