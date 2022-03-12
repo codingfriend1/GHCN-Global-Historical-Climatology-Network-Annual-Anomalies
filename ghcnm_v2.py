@@ -56,7 +56,7 @@ def parse_temperature_row(row):
 def get_ghcnm_by_station(url):
 
   # Read the station file
-  station_temperature_data_file = pd.read_csv(url, header=None)
+  station_temperature_data_file = pd.read_csv(url, sep="\t", header=None, low_memory=False)
 
   # Combine all parsed rows into one array
   file_rows = []

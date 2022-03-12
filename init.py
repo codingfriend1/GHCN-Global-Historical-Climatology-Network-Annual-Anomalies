@@ -19,28 +19,28 @@ STATIONS = False
 GHCNM_DATA = False
 
 # Parse Station data into a DataFrame
-try:
-  STATIONS = stations.get_stations(STATION_URL, COUNTRIES_URL)
+# try:
+STATIONS = stations.get_stations(STATION_URL, COUNTRIES_URL)
 
-except Exception as e:
+# except Exception as e:
 
-  print(f"\nFailed to parse GHCN-M Station Data from\n\n{STATION_URL}\n{COUNTRIES_URL}\n\n", e, "\n")
+#   print(f"\nFailed to parse GHCN-M Station Data from\n\n{STATION_URL}\n{COUNTRIES_URL}\n\n", e, "\n")
 
-  print(f"Check if you referenced the right file and path. The file should be in the format ghcnm.ELEMENT.v4.#.#.YYYYMMDD.VERSION.inv")
+#   print(f"Check if you referenced the right file and path. The file should be in the format ghcnm.ELEMENT.v4.#.#.YYYYMMDD.VERSION.inv")
 
-  quit()
+#   quit()
 
 # Parse GHCN-M data into a DataFrame
-try:
-  GHCNM_DATA = ghcnm.get_ghcnm_by_station(GHCNM_DAT_URL)
+# try:
+GHCNM_DATA = ghcnm.get_ghcnm_by_station(GHCNM_DAT_URL)
 
-except Exception as e:
+# except Exception as e:
 
-  print(f"\nFailed to parse GHCN-M Temperature Data from:\n\n{GHCNM_DAT_URL}\n\n", e, "\n")
+#   print(f"\nFailed to parse GHCN-M Temperature Data from:\n\n{GHCNM_DAT_URL}\n\n", e, "\n")
 
-  print(f"Check if you referenced the right file and path. The file should be in the format ghcnm.ELEMENT.v4.#.#.YYYYMMDD.VERSION.dat")
+#   print(f"Check if you referenced the right file and path. The file should be in the format ghcnm.ELEMENT.v4.#.#.YYYYMMDD.VERSION.dat")
 
-  quit()
+#   quit()
 
 # Prepare station progress counter
 TOTAL_STATIONS = len(GHCNM_DATA)

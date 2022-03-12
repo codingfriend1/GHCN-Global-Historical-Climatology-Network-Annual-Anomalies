@@ -10,9 +10,9 @@ FOLDER = 'ghcnm.v4.0.1.20220308'
 STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
 
 # The name of the main GHCN-M data file (ghcnm.element.v4.#.#.YYYYMMDD.version.dat)
-# DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
+DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
 
-DATA_FILE_NAME = "test.dat"
+# DATA_FILE_NAME = "test.dat"
 
 # GHCN-M v4 Associated Country Code to Country Name file
 COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
