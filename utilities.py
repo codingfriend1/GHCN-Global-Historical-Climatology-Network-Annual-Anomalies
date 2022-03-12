@@ -123,7 +123,7 @@ def print_summary_to_console(total_stations):
   absolute_downwards_trend = normal_round(np.average(absolute_trends_array[1]), 3) if len(absolute_trends_array[1]) else "Unknown"
   absolute_all_trends = normal_round(np.average(absolute_trends_array[2]), 3) if len(absolute_trends_array[2]) else "Unknown"
 
-  print(f"\n{'Flagged data purged' if PURGE_FLAGS else 'Utilizes all data (including flagged)'}")
+  print(f"\n{'Flagged data purged' if PURGE_FLAGS else 'Utilizes all data (including flagged)'}\n")
 
   print(f"Absolute Temperature Trends ({ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR - 1})")
   print("=======================================")

@@ -1,6 +1,7 @@
 from constants import *
 import pandas as pd
 import math
+import ghcnm as ghcnm_v1
 
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
@@ -11,47 +12,64 @@ COLUMN_INDEX_FOR_JAN_GROUPING = 2
 
 def get_permitted_reading(month_grouping):
 
-  VALUE = int(month_grouping[0]) if not math.isnan(month_grouping[0]) else math.nan
-  DMFLAG = month_grouping[1]
-  QCFLAG = month_grouping[2]
-  DSFLAG = month_grouping[3]
-
-  return VALUE if not PURGE_FLAGS or (not DMFLAG == 'E' and QCFLAG == ' ' and DSFLAG == ' ') else math.nan
+  return ghcnm_v1.get_permitted_reading(month_grouping)
 
 def get_station_start_and_end_year(temp_data_for_station):
-  start_year = temp_data_for_station.iloc[0]['year']
-  end_year = temp_data_for_station.iloc[len(temp_data_for_station) - 1]['year']
+  start_year = temp_data_for_station.iloc[0][1]
+  end_year = temp_data_for_station.iloc[len(temp_data_for_station) - 1][1]
 
   return start_year, end_year
 
-# Read .dat file and parse into a usable dataframe, replacing -9999 with NaN
+def parse_temperature_row(row):
+
+  usable_row = []
+
+  ID = str(row[0:11])
+  YEAR = int(row[11:15])
+  ELEMENT = row[15:19]
+
+  usable_row.append(ID)
+  usable_row.append(YEAR)
+
+  for index in range(19, 115, 8):
+
+    try:
+      
+      VALUE = int(row[index:index + 5])
+
+      VALUE = VALUE1 if VALUE1 != -9999 else math.nan
+
+      DMFLAG = str(row[index + 5:index + 6])
+      QCFLAG = str(row[index + 6:index + 7])
+      DSFLAG = str(row[index + 7:index + 8])
+
+      value_set = [ VALUE, DMFLAG, QCFLAG, DSFLAG ]
+
+      usable_row.append(value_set)
+
+    except:
+      print('Error parsing row', row)
+
+  return usable_row
+
+
 def get_ghcnm_by_station(url):
 
-  colspecs = [ (0,11), (11,15), (15,19) ]
+  # Read the station file
+  station_temperature_data_file = pd.read_csv(url, header=None)
 
-  names = ['station_id', 'year', 'element']
+  # Combine all parsed rows into one array
+  file_rows = []
 
-  i = 19
+  for file_row in station_temperature_data_file.values:
 
-  for m in range(1,13):
+      parsed_row = parse_temperature_row(file_row[0])
 
-    month = str(m)
+      file_rows.append(parsed_row)
 
-    month_colspecs = [ (i, i + 5), (i + 5, i + 6), (i + 6, i + 7), (i + 7, i + 8) ]
+  ghcnm_dataframe = pd.DataFrame(file_rows)
 
-    month_names = [ 'VALUE' + month, 'DMFLAG' + month, 'QCFLAG' + month, 'DSFLAG' + month ]
-
-    for cell in range(0, 4):
-        colspecs.append(month_colspecs[cell]) 
-        names.append(month_names[cell])
-
-    i += 8
-
-  ghcnm_dataframe = pd.read_fwf(url, colspecs=colspecs, names=names, header=None)
-
-  ghcnm_dataframe.replace(to_replace=MISSING_VALUE, value=math.nan, inplace=True)
-
-  ghcnm_dataframe_by_station = ghcnm_dataframe.groupby(['station_id'])
+  ghcnm_dataframe_by_station = ghcnm_dataframe.groupby([0])
 
   return ghcnm_dataframe_by_station
 
@@ -77,7 +95,7 @@ def fit_permitted_data_to_range(temp_data_for_station):
   for year in range(YEAR_RANGE_START, YEAR_RANGE_END):
 
     # Check if the station's temperature data includes this year
-    matching_row = temp_data_for_station.loc[temp_data_for_station['year'] == year]
+    matching_row = temp_data_for_station.loc[temp_data_for_station[1] == year]
 
     # If the station has data for this year
     if not matching_row.empty:
@@ -85,12 +103,10 @@ def fit_permitted_data_to_range(temp_data_for_station):
       # For each month of the year
       for month_iteration, month_class in enumerate(absolute_temperatures_by_month):
 
-        month = str(1 + month_iteration)
+        month = 2 + month_iteration
 
         # Select the equivalent columns for that month from the station data
-        cols = [ 'VALUE' + month, 'DMFLAG' + month, 'QCFLAG' + month, 'DSFLAG' + month ]
-
-        month_grouping = matching_row[cols].to_numpy()[0]
+        month_grouping = matching_row[month].to_numpy()[0]
 
         # Check the flags and either return the value or NaN
         permitted_temperature = get_permitted_reading(month_grouping)
