@@ -1,27 +1,27 @@
 import datetime
 import math
 
-VERSION = 'v3'
+VERSION = 'v4'
 
-DIRECTORY = r'~/Downloads/ghcnm/v3'
+DIRECTORY = r'~/Downloads/ghcnm/v4'
 
 # The unzipped folder to look for all files
-# FOLDER = 'ghcnm.v4.0.1.20220308'
-FOLDER = 'ghcnm.v3.3.0.20190821'
+FOLDER = 'ghcnm.v4.0.1.20220308'
+# FOLDER = 'ghcnm.v3.3.0.20190821'
 
 # The name of the GHCN-M associated Station Data (ghcnm.element.v4.#.#.YYYYMMDD.version.inv)
-# STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
-STATION_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qcu.inv"
+STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
+# STATION_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qcu.inv"
 
 # The name of the main GHCN-M data file (ghcnm.element.v4.#.#.YYYYMMDD.version.dat)
-# DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
-DATA_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qcu.dat"
+DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
+# DATA_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qcu.dat"
 
 # DATA_FILE_NAME = "test.dat"
 
 # GHCN-M v4 Associated Country Code to Country Name file
-# COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
-COUNTRIES_FILE_NAME = "country-codes"
+COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
+# COUNTRIES_FILE_NAME = "country-codes"
 
 # Earliest year you want to consider in the data
 YEAR_RANGE_START = 1850
