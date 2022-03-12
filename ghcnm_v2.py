@@ -37,7 +37,7 @@ def parse_temperature_row(row):
       
       VALUE = int(row[index:index + 5])
 
-      VALUE = VALUE1 if VALUE1 != -9999 else math.nan
+      VALUE = VALUE if VALUE != -9999 else math.nan
 
       DMFLAG = str(row[index + 5:index + 6])
       QCFLAG = str(row[index + 6:index + 7])
