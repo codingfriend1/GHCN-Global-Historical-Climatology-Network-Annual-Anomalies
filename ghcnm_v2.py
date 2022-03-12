@@ -24,7 +24,7 @@ def parse_temperature_row(row):
 
   usable_row = []
 
-  COUNTRY_CODE = str(row[0:2])
+  COUNTRY_CODE = str(row[0:2]) if VERSION == "v4" else str(row[0:3])
   ID = str(row[0:11])
   YEAR = int(row[11:15])
   ELEMENT = row[15:19]

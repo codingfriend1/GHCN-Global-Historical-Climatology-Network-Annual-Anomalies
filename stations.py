@@ -1,5 +1,6 @@
 from constants import *
 import pandas as pd
+import numpy as np
 
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
@@ -10,11 +11,31 @@ country_code_df = False
 
 def get_stations(station_file_name, country_codes_file_name):
 
+  dtypes = {
+    'country_code': "int64",
+    'station_id': np.object,
+    'latitude': np.float64,
+    'longitude': np.float64,
+    'elevation': np.float64,
+    'name': np.object
+  }
+
+  names = ['country_code','station_id', 'latitude','longitude','elevation','name']
+
+  colspecs = []
+
+  if VERSION == "v3":
+    colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68)]
+  elif VERSION == "v4":
+    colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
+
   stations = pd.read_fwf(
     station_file_name, 
-    colspecs=[(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)], 
-    names=['country_code','station_id', 'latitude','longitude','elevation','name'],
-    header=None, encoding='utf-8'
+    colspecs=colspecs, 
+    names=names, 
+    dtype=dtypes, 
+    header=None, 
+    encoding='utf-8', 
   )
 
   stations_and_country_name = merge_with_country_names(stations, country_codes_file_name)
