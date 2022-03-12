@@ -96,7 +96,11 @@ def calculate_trend(average_anomalies_by_year):
 
   idx = np.isfinite(x_years) & np.isfinite(y_anomalies) & np.greater_equal(x_years, ABSOLUTE_START_YEAR) & np.less(x_years, ABSOLUTE_END_YEAR)
 
-  if len(x_years[idx]) > 1:
+  trends_range = ABSOLUTE_END_YEAR - ABSOLUTE_START_YEAR
+
+  necessary_minimum_readings_to_form_a_reliable_average = determine_readings_needed_for_reliable_average(trends_range)
+
+  if len(x_years[idx]) >= necessary_minimum_readings_to_form_a_reliable_average:
 
     slope_of_yearly_averages = normal_round(np.polyfit(x_years[idx], y_anomalies[idx], 1)[0], 3)
 
