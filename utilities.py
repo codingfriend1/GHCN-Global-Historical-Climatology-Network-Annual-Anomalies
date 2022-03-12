@@ -19,7 +19,7 @@ downwards_end_year_array = []
 anomaly_trends_array = [[],[],[]]
 absolute_trends_array = [[],[],[]]
 
-def compose_station_console_output(country_iteration, total_countries, country_name, station_iteration, total_stations, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location):
+def compose_station_console_output(station_iteration, total_stations, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location):
 
   which_station = f"Station {station_iteration} of {total_stations}"
 
@@ -69,7 +69,7 @@ def update_statistics(trend, type):
 
   return visual
 
-def compose_file_name(country_code):
+def compose_file_name(country_code=""):
   reference_text = f"-rolling-{REFERENCE_RANGE}"
   if REFERENCE_START_YEAR:
       reference_text = f"-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}r"
@@ -77,11 +77,15 @@ def compose_file_name(country_code):
   acceptable_percent = normal_round(ACCEPTABLE_AVAILABLE_DATA_PERCENT * 100)
   date = TODAY.strftime("%Y-%m-%d")
 
-  OUTPUT_FILE_NAME = f"{country_code}-{FOLDER}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}.xlsx"
+  country_code_text = ""
+  if country_code:
+    country_code_text = f"{country_code}-"
+
+  OUTPUT_FILE_NAME = f"{country_code_text}{FOLDER}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}.xlsx"
 
   return OUTPUT_FILE_NAME
 
-def output_file(country_code, excel_data):
+def output_file(excel_data, country_code=""):
 
   excel_data_pd = pd.DataFrame(excel_data)
 
@@ -99,7 +103,7 @@ def generate_year_range_series():
 def generate_average_anomalies_list(label, average_of_all_anomalies):
   return pd.concat([pd.Series([label]), average_of_all_anomalies]).reset_index(drop = True)
 
-def create_excel_file(annual_anomalies_by_station, country_name, country_code):
+def create_excel_file(annual_anomalies_by_station, country_name="", country_code=""):
 
   # Start the base of our xlsx data
   excel_data = {
@@ -109,13 +113,14 @@ def create_excel_file(annual_anomalies_by_station, country_name, country_code):
   # MATH - Average annual anomolies across all stations and add to excel_data
   average_anomolies_of_all_stations_in_country = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_station)
 
-  excel_data["Average Anomolies"] = generate_average_anomalies_list(f"{country_name} stations", average_anomolies_of_all_stations_in_country)
+  # excel_data["Average Anomolies"] = generate_average_anomalies_list(f"{country_name} stations", average_anomolies_of_all_stations_in_country)
+  excel_data["Average Anomolies"] = generate_average_anomalies_list(f"All stations", average_anomolies_of_all_stations_in_country)
 
-  for year, station in annual_anomalies_by_station.iterrows():
+  # for year, station in annual_anomalies_by_station.iterrows():
     
-    excel_data[station[0]] = pd.Series(station[1:]).reset_index(drop = True)
+  #   excel_data[station[0]] = pd.Series(station[1:]).reset_index(drop = True)
 
-  output_file(country_code, excel_data)
+  output_file(excel_data)
 
 def create_final_excel_file(anomalies_by_country, country_name, country_code):
 
@@ -133,10 +138,10 @@ def create_final_excel_file(anomalies_by_country, country_name, country_code):
     
     excel_data[cc] = pd.concat([pd.Series([series.iloc[0]]), pd.Series(series.iloc[1:]).astype("float")]).reset_index(drop = True)
 
-  output_file("000-Summary", excel_data)
+  output_file(excel_data, "000-Summary")
 
 # Print Summaries
-def print_summary_to_console(total_stations, country_code):
+def print_summary_to_console(total_stations):
 
   # print('\n')
   # print('Estimated temperature percent', normal_round(num_of_estimated_temperature_readings / num_of_temperature_readings, 2))
@@ -159,6 +164,6 @@ def print_summary_to_console(total_stations, country_code):
 
   print(f"Anomaly Trends: \t\t{anomaly_up_count} ↑ ({anomaly_upwards_trend} Avg)  \t\t{anomaly_down_count} ↓ ({anomaly_downwards_trend} Avg) \t\tTotal Avg: {anomaly_all_trends}°C {'rise' if anomaly_all_trends > 0 else 'fall'} every century")
   print("")
-  print(f"File output to {compose_file_name(country_code)}")
+  print(f"File output to {compose_file_name()}")
   print("")
   print("\n")

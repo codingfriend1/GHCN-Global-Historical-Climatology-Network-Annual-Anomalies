@@ -71,9 +71,9 @@ def get_ghcnm_by_station(url):
 
   ghcnm_dataframe = pd.DataFrame(file_rows)
 
-  # ghcnm_dataframe_by_station_by_country = ghcnm_dataframe.groupby([1])
+  ghcnm_dataframe_by_station = ghcnm_dataframe.groupby([1])
 
-  return ghcnm_dataframe
+  return ghcnm_dataframe_by_station
 
 # Create a range of years based on the Developer's configuration and fill it with the matching data from the station's temperature readings by month after first removing flagged or unwanted data
 def fit_permitted_data_to_range(temp_data_for_station):

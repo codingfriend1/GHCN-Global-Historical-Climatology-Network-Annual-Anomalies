@@ -51,7 +51,7 @@ def get_ghcnm_by_station(url):
 
   ghcnm_dataframe.replace(to_replace=MISSING_VALUE, value=math.nan, inplace=True)
 
-  # ghcnm_dataframe_by_station_by_country = ghcnm_dataframe.groupby(['country_code', 'station_id'])
+  ghcnm_dataframe_by_station_by_country = ghcnm_dataframe.groupby(['station_id'])
 
   return ghcnm_dataframe
 
