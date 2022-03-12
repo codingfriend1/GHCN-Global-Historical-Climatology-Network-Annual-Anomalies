@@ -16,7 +16,7 @@ def get_permitted_reading(month_grouping):
   QCFLAG = month_grouping[2]
   DSFLAG = month_grouping[3]
 
-  return VALUE if not PURGE_FLAGS or (not DMFLAG == 'E' and QCFLAG == ' ' and DSFLAG == ' ') else math.nan
+  return VALUE if not PURGE_FLAGS or (not DMFLAG == 'E' and QCFLAG == ' ') else math.nan
 
 def get_station_start_and_end_year(temp_data_for_station):
   start_year = temp_data_for_station.iloc[0]['year']

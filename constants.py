@@ -10,9 +10,9 @@ FOLDER = 'ghcnm.v4.0.1.20220308'
 STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
 
 # The name of the main GHCN-M data file (ghcnm.element.v4.#.#.YYYYMMDD.version.dat)
-# DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
+DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
 
-DATA_FILE_NAME = "test.dat"
+# DATA_FILE_NAME = "test.dat"
 
 # GHCN-M v4 Associated Country Code to Country Name file
 COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
@@ -21,13 +21,13 @@ COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
 YEAR_RANGE_START = 1850
 
 # Leave blank if you wish to use a rolling average
-REFERENCE_START_YEAR = 1951
+REFERENCE_START_YEAR = 1961
 
 # Number of years to consider in the reference average
 REFERENCE_RANGE = 30
 
 # Whether to purge all readings with Quality Control, Data Measurement, or Data Source flags
-PURGE_FLAGS = False
+PURGE_FLAGS = True
 
 # The acceptable amount of data available (subtracting missing data) before an anomaly calculation can be made (in decimal form)
 ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.7

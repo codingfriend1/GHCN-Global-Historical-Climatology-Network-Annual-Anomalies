@@ -158,11 +158,13 @@ def print_summary_to_console(total_stations):
 
   print("-------------------------------------------------------------------------------------------------------------------------------------")
 
-  print(f"Absolete Trends:\t\t{absolute_up_count} ↑ ({absolute_upwards_trend} Avg)  \t\t{absolute_down_count} ↓ ({absolute_downwards_trend} Avg) \t\tTotal Avg: {absolute_all_trends}°C {'rise' if absolute_all_trends > 0 else 'fall'} every century")
-  # if not absolute_all_trends == "Unknown":
-  #     print(f"")
+  print(f"Absolete Trends:\t\t{absolute_up_count} ↑ ({absolute_upwards_trend} Avg)  \t\t{absolute_down_count} ↓ ({absolute_downwards_trend} Avg)")
+  if not absolute_all_trends == "Unknown":
+      print(f"Total Avg: {absolute_all_trends}°C {'rise' if float(absolute_all_trends) > 0 else 'fall'} every century")
 
-  print(f"Anomaly Trends: \t\t{anomaly_up_count} ↑ ({anomaly_upwards_trend} Avg)  \t\t{anomaly_down_count} ↓ ({anomaly_downwards_trend} Avg) \t\tTotal Avg: {anomaly_all_trends}°C {'rise' if anomaly_all_trends > 0 else 'fall'} every century")
+  print(f"Anomaly Trends: \t\t{anomaly_up_count} ↑ ({anomaly_upwards_trend} Avg)  \t\t{anomaly_down_count} ↓ ({anomaly_downwards_trend} Avg)")
+  if not anomaly_all_trends == "Unknown":
+    print(f"Total Avg: {anomaly_all_trends}°C {'rise' if float(anomaly_all_trends) > 0 else 'fall'} every century")
   print("")
   print(f"File output to {compose_file_name()}")
   print("")
