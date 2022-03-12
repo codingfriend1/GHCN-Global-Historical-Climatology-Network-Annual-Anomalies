@@ -12,7 +12,6 @@ country_code_df = False
 def get_stations(station_file_name, country_codes_file_name):
 
   dtypes = {
-    'country_code': "int64",
     'station_id': np.object,
     'latitude': np.float64,
     'longitude': np.float64,
@@ -26,8 +25,10 @@ def get_stations(station_file_name, country_codes_file_name):
 
   if VERSION == "v3":
     colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68)]
+    dtypes['country_code'] = "int64"
   elif VERSION == "v4":
     colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
+    dtypes['country_code'] = "object"
 
   stations = pd.read_fwf(
     station_file_name, 
