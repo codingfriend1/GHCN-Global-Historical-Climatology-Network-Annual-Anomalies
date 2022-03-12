@@ -30,7 +30,7 @@ REFERENCE_RANGE = 30
 PURGE_FLAGS = False
 
 # The acceptable amount of data available (subtracting missing data) before an anomaly calculation can be made (in decimal form)
-ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.3
+ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.7
 
 # 
 # The range to consider when calculating trends for console output

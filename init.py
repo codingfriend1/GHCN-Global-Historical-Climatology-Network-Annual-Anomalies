@@ -88,8 +88,7 @@ for station_id, temp_data_for_station in GHCNM_DATA:
 
   annual_anomalies_by_station.append(average_anomalies_by_year_and_station_metadata)
 
+ut.print_summary_to_console(TOTAL_STATIONS)
 #
 # Output File
 ut.create_excel_file(pd.DataFrame(annual_anomalies_by_station))
-
-ut.print_summary_to_console(TOTAL_STATIONS)

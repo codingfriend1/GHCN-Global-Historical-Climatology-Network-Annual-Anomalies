@@ -99,9 +99,9 @@ def create_excel_file(annual_anomalies_by_station):
 
   excel_data["Average Anomolies"] = pd.concat([pd.Series(['All Stations']), average_anomolies_of_all_stations]).reset_index(drop = True)
 
-  for year, station in annual_anomalies_by_station.iterrows():
+  # for year, station in annual_anomalies_by_station.iterrows():
     
-    excel_data[station[0]] = pd.Series(station[1:]).reset_index(drop = True)
+  #   excel_data[station[0]] = pd.Series(station[1:]).reset_index(drop = True)
 
   excel_data_pd = pd.DataFrame(excel_data)
 
