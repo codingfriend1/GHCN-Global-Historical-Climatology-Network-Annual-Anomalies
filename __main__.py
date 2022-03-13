@@ -59,6 +59,8 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   # Get the Station Location
   station_location = stations.get_station_address(station_id, STATIONS)
 
+  station_gridbox = stations.get_station_gridbox(station_id, STATIONS)
+
   # Build an array based on the Year Range constants and include the matching line from the file on each year if its data evaluates as acceptable based on its flags
   temperatures_by_month = ghcnm.fit_permitted_data_to_range(temperature_data_for_station)
 
@@ -82,18 +84,29 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   start_year, end_year = ghcnm.get_station_start_and_end_year(temperature_data_for_station)
 
   # Output Progress and Trends to Console
-  ut.compose_station_console_output(station_iteration, TOTAL_STATIONS_IN_COUNTRY, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location)
+  ut.compose_station_console_output(station_iteration, TOTAL_STATIONS_IN_COUNTRY, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
 
   # ORDER - Replace the first cell with the station location
-  average_anomalies_by_year_and_station_metadata = pd.concat([ pd.Series([station_id]), pd.Series([station_location]), average_anomalies_by_year ]).reset_index(drop = True)
+  average_anomalies_by_year_and_station_metadata = pd.concat([ pd.Series([station_id, station_location, station_gridbox]), average_anomalies_by_year ]).reset_index(drop = True)
 
   annual_anomalies_by_station_in_country.append(average_anomalies_by_year_and_station_metadata)
 
   # anomalies_by_country[country_code] = np.concatenate([[f"{country_name} station averages"], average_anomalies_by_year ])
 
+
+
 ut.print_summary_to_console(TOTAL_STATIONS_IN_COUNTRY)
 
+annual_anomalies_by_station_in_country_dataframe = pd.DataFrame(annual_anomalies_by_station_in_country)
+
+# Average annual anomolies across all stations
+average_anomolies_of_all_stations_in_country = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_station_in_country_dataframe)
+
+annual_anomalies_by_grid = anomaly.average_anomalies_by_year_by_grid(annual_anomalies_by_station_in_country_dataframe)
+
+avg_annual_anomalies_of_all_grids = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_grid, axis=1)
+
 # Output File
-ut.create_excel_file(pd.DataFrame(annual_anomalies_by_station_in_country))
+ut.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:])
 
 # ut.create_final_excel_file(pd.DataFrame(anomalies_by_country), country_name, country_code)

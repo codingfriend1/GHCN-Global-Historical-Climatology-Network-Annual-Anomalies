@@ -19,7 +19,7 @@ downwards_end_year_array = []
 anomaly_trends_array = [[],[],[]]
 absolute_trends_array = [[],[],[]]
 
-def compose_station_console_output(station_iteration, total_stations, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location):
+def compose_station_console_output(station_iteration, total_stations, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox):
 
   which_station = f"Station {station_iteration} of {total_stations}"
 
@@ -27,7 +27,7 @@ def compose_station_console_output(station_iteration, total_stations, station_id
 
   year_range = f"{start_year}-{end_year}"
 
-  print(f"{which_station} \t{station_id}\t  {anomaly_trends}\t| {year_range} | {station_location}")
+  print(f"{which_station} \t{station_id}\t  {anomaly_trends}\t| {year_range} | {station_gridbox}  \t\t| {station_location}")
 
 def update_statistics(trend, type):
 
@@ -81,7 +81,7 @@ def compose_file_name(country_code=""):
   if country_code:
     country_code_text = f"{country_code}-"
 
-  OUTPUT_FILE_NAME = f"{country_code_text}{FOLDER}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}.xlsx"
+  OUTPUT_FILE_NAME = f"{country_code_text}{DATA_FILE_NAME}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}.xlsx"
 
   return OUTPUT_FILE_NAME
 
@@ -98,27 +98,23 @@ def output_file(excel_data, country_code=""):
   EXCEL_WRITER.save()
 
 def generate_year_range_series():
-  return pd.concat([pd.Series([' ']), pd.Series(range(YEAR_RANGE_START, YEAR_RANGE_END))]).reset_index(drop = True)
+  return pd.concat([pd.Series(['Weight']), pd.Series(range(YEAR_RANGE_START, YEAR_RANGE_END))]).reset_index(drop = True)
 
 def generate_average_anomalies_list(label, average_of_all_anomalies):
   return pd.concat([pd.Series([label]), average_of_all_anomalies]).reset_index(drop = True)
 
-def create_excel_file(annual_anomalies_by_station, country_name="", country_code=""):
+def create_excel_file(annual_anomalies_by_grid, average_anomolies_of_all_stations_in_country, country_name="", country_code=""):
 
   # Start the base of our xlsx data
   excel_data = {
     "Year": generate_year_range_series()
   }
 
-  # MATH - Average annual anomolies across all stations and add to excel_data
-  average_anomolies_of_all_stations_in_country = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_station)
+  excel_data["Average Anomolies"] = generate_average_anomalies_list("All grids", average_anomolies_of_all_stations_in_country)
 
-  # excel_data["Average Anomolies"] = generate_average_anomalies_list(f"{country_name} stations", average_anomolies_of_all_stations_in_country)
-  excel_data["Average Anomolies"] = generate_average_anomalies_list(f"All stations", average_anomolies_of_all_stations_in_country)
-
-  # for year, station in annual_anomalies_by_station.iterrows():
+  for grid_cell_label, grid in annual_anomalies_by_grid.iteritems():
     
-  #   excel_data[station[0]] = pd.Series(station[1:]).reset_index(drop = True)
+    excel_data[grid_cell_label] = grid
 
   output_file(excel_data)
 
