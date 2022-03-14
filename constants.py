@@ -18,7 +18,6 @@ STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
 DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
 # DATA_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qca.dat"
 # DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220311.qcf.dat"
-
 # DATA_FILE_NAME = "test.dat"
 
 # GHCN-M v4 Associated Country Code to Country Name file

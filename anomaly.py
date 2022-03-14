@@ -89,6 +89,26 @@ def average_monthly_anomalies_by_year(lists_of_anomalies, axis=0):
 
   return average_anomalies_by_year
 
+def weighted_avg(df, values, weights):
+  d = df
+  w = weights
+  
+  indices = ~np.isnan(d)
+
+  if np.isnan(d).all():
+    return math.nan
+  else:
+    return (d[indices] * w[indices]).sum() / w[indices].sum()
+
+def average_weighted_grid_anomalies_by_year(anomalies_by_grid):
+
+  weights = anomalies_by_grid.iloc[0].to_numpy()
+
+  average_anomalies_by_year = anomalies_by_grid.apply(weighted_avg, args=(anomalies_by_grid, weights), axis=1)
+
+  return average_anomalies_by_year
+
+
 def average_anomalies_by_year_by_grid(lists_of_anomalies):
 
   station_gridbox_row = 2

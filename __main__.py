@@ -104,7 +104,7 @@ average_anomolies_of_all_stations_in_country = anomaly.average_monthly_anomalies
 
 annual_anomalies_by_grid = anomaly.average_anomalies_by_year_by_grid(annual_anomalies_by_station_in_country_dataframe)
 
-avg_annual_anomalies_of_all_grids = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_grid, axis=1)
+avg_annual_anomalies_of_all_grids = anomaly.average_weighted_grid_anomalies_by_year(annual_anomalies_by_grid)
 
 # Output File
 ut.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:])
