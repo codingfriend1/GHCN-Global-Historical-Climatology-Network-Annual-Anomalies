@@ -79,12 +79,12 @@ def merge_with_country_names(stations, country_codes_file_name):
 
 
 '''
-Code for set_station_grid_cells() and determine_grid_weight() are loosely based on gridding logic from: 
+Code for set_station_grid_cells() is loosely based on gridding logic from: 
 https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
 Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
 https://github.com/aljones1816/GHCNV4_Analysis
 License: GNU General Public License v3.0
-Some variable names have been renamed but most logic remains intact. I was unable to contact aljones1816 to get his permission to use this code. It should be assumed that the use of the gridding logic in this project should not be construed as a reflection on his work. The contexts for this code is completely different for his use and it's use here, if found to be flawed, should in no way reflect poorly on him. aljones1816 if you see this code, please reach out to me at codingfriend1@gmail.com.
+Some variable names have been renamed but most logic remains intact. I was unable to contact aljones1816 to get his permission to use this code. It should be assumed that the use of the gridding logic in this project should not be construed as a reflection on his work. The context for this code is completely different for his use and it's use here, if found to be flawed, should in no way reflect poorly on him. aljones1816 if you see this code, please reach out to me at codingfriend1@gmail.com.
 '''
 
 def set_station_grid_cells(stations):
@@ -116,15 +116,13 @@ def determine_grid_weight(grid_label):
   land_percent = float(matching_land_mask_row[0])
 
   # Extract the center latitude and longitude of the cell from the grid_label
-  lat, lat_lab, lon, lon_label = grid_label.split(" ")
-  latitude = float(lat)
-  longitude = float(lon)
+  latitude = float(grid_label.split(" ")[0])
 
-  # Since grids get smaller near the polls, we need to adjust the weight of the grid to give it equal representation to other grids of larger size
-  grid_weight = np.sin((latitude + GRID_SIZE / 2) * np.pi / 180) - np.sin(
-      (longitude - GRID_SIZE / 2) * np.pi / 180)
+  # Since grid boxes get smaller near the polls, we need to reduce the influence/weight of the smaller boxes at higher or lower latitudes from the equator to account for the smaller area using the mid-latitude of the grid box
+  grid_weight = np.cos( latitude * (np.pi / 180 ) )
 
-  return grid_weight * land_percent
+  # Since we are only measuring land temperatures, we want to reduce the weight of the grid box by the ratio of land to water
+  return normal_round(grid_weight * land_percent, 4)
 
 def get_country_name_from_code(country_code):
 
