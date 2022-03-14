@@ -106,7 +106,9 @@ annual_anomalies_by_grid = anomaly.average_anomalies_by_year_by_grid(annual_anom
 
 avg_annual_anomalies_of_all_grids = anomaly.average_weighted_grid_anomalies_by_year(annual_anomalies_by_grid)
 
+avg_annual_anomalies_of_all_grids_divided = avg_annual_anomalies_of_all_grids.iloc[1:].apply(lambda v : normal_round(v / 100, 3))
+
 # Output File
-ut.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:])
+ut.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:], avg_annual_anomalies_of_all_grids_divided)
 
 # ut.create_final_excel_file(pd.DataFrame(anomalies_by_country), country_name, country_code)

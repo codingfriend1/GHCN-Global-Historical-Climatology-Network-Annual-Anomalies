@@ -103,7 +103,7 @@ def generate_year_range_series():
 def generate_average_anomalies_list(label, average_of_all_anomalies):
   return pd.concat([pd.Series([label]), average_of_all_anomalies]).reset_index(drop = True)
 
-def create_excel_file(annual_anomalies_by_grid, average_anomolies_of_all_stations_in_country, country_name="", country_code=""):
+def create_excel_file(annual_anomalies_by_grid, average_anomolies_of_all_stations_in_country, avg_annual_anomalies_of_all_grids_divided, country_name="", country_code=""):
 
   # Start the base of our xlsx data
   excel_data = {
@@ -111,6 +111,7 @@ def create_excel_file(annual_anomalies_by_grid, average_anomolies_of_all_station
   }
 
   excel_data["Average Anomolies"] = generate_average_anomalies_list("All grids", average_anomolies_of_all_stations_in_country)
+  excel_data["Average Anomolies / 100"] = generate_average_anomalies_list("All grids", avg_annual_anomalies_of_all_grids_divided)
 
   for grid_cell_label, grid in annual_anomalies_by_grid.iteritems():
     
