@@ -88,6 +88,8 @@ def download_GHCNm_data():
 
       print(f"  {file}")
 
+    COUNTRIES_FILE_PATH = get_local_country_file()
+    print(f"  {COUNTRY_CODES_FILE_NAME}")
     print("")
 
     '''
@@ -97,8 +99,6 @@ def download_GHCNm_data():
     Code for retrieving this file has been slightly modified from original: https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
     '''
     gdd.download_file_from_google_drive(file_id='1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj', dest_path=LAND_MASK_FILE_NAME, unzip=False)
-
-    COUNTRIES_FILE_PATH = get_local_country_file()
 
   else:
 
