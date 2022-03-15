@@ -10,21 +10,28 @@ import math
 import os
 import datetime
 
+import download
 import stations
 import temperatures
 import anomaly
 import output
 
 # Important File URLs
-STATION_URL = os.path.join(DIRECTORY, FOLDER, STATION_FILE_NAME)
-COUNTRIES_URL = os.path.join(DIRECTORY, COUNTRIES_FILE_NAME)
-GHCNM_DAT_URL = os.path.join(DIRECTORY, FOLDER, DATA_FILE_NAME)
+# STATION_URL = os.path.join(DIRECTORY, FOLDER, STATION_FILE_NAME)
+# COUNTRIES_URL = os.path.join(DIRECTORY, COUNTRIES_FILE_NAME)
+# GHCNM_DAT_URL = os.path.join(DIRECTORY, FOLDER, DATA_FILE_NAME)
+
+# Check if files exist and if not, download them
+STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download.download_GHCNm_data()
+
+# Show the Developer the settings they've chosen
+output.print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
 
 # Parse Station metadata (.inv) into a DataFrame
-STATIONS = stations.get_stations(STATION_URL, COUNTRIES_URL)
+STATIONS = stations.get_stations(STATION_FILE_PATH, COUNTRIES_FILE_PATH)
 
 # Parse GHCN-M temperature data (.dat) into a DataFrame
-TEMPERATURES = temperatures.get_temperatures_by_station(GHCNM_DAT_URL)
+TEMPERATURES = temperatures.get_temperatures_by_station(GHCN_TEMPERATURES_FILE_PATH)
 
 # "TEMPERATURES" data is grouped by station, so counting its length will tell us the total number of Stations
 TOTAL_STATIONS = len(TEMPERATURES)
@@ -100,20 +107,16 @@ if USE_GRIDDING:
   avg_annual_anomalies_of_all_grids_divided = avg_annual_anomalies_of_all_grids.iloc[1:].apply(lambda v : normal_round(v / 100, 3))
 
   # Finally prepare the data for Excel and save
-  output.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:], avg_annual_anomalies_of_all_grids_divided)
+  output.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:], avg_annual_anomalies_of_all_grids_divided, GHCN_TEMPERATURES_FILE_PATH)
 
 # If we are skipping gridding:
 else:
 
   # Average annual anomolies across all stations
-  average_anomolies_of_all_stations_in_country = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_station_dataframe)
+  average_anomolies_of_all_stations = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_station_dataframe)
 
   # Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
-  average_anomolies_of_all_stations_in_country_divided = average_anomolies_of_all_stations_in_country.apply(lambda v : normal_round(v / 100, 3))
+  average_anomolies_of_all_stations_divided = average_anomolies_of_all_stations.apply(lambda v : normal_round(v / 100, 3))
 
   # Finally prepare the data for Excel and save
-  output.create_excel_file(annual_anomalies_by_station_dataframe, average_anomolies_of_all_stations_in_country, average_anomolies_of_all_stations_in_country_divided)
-
-
-
-# output.create_final_excel_file(pd.DataFrame(anomalies_by_country), country_name, country_code)
+  output.create_excel_file(annual_anomalies_by_station_dataframe, average_anomolies_of_all_stations, average_anomolies_of_all_stations_divided)

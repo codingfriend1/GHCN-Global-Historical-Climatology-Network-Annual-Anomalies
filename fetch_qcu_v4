@@ -1,4 +1,0 @@
-wget https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz
-wget https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt
-wget https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
-tar -xvzf *.tar.gz

@@ -6,13 +6,15 @@
 from constants import *
 import pandas as pd
 import numpy as np
-from google_drive_downloader import GoogleDriveDownloader as gdd
+from download import LAND_MASK_FILE_NAME
 
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
 '''
 
 country_code_df = False
+
+land_mask = {}
 
 '''
 When forming a grid of latitude and longitude boxes around the earth, this is represents the size of each grid box in degrees
@@ -21,15 +23,8 @@ https://modernsurvivalblog.com/wp-content/uploads/2013/09/united-states-latitude
 '''
 GRID_SIZE = 5
 
-'''
-Google Drive Land Mask obtained from https://github.com/aljones1816/GHCNV4_Analysis
-Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
-License: GNU General Public License v3.0
-Code for retrieving this file has been slightly modified from original: https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
-'''
-LAND_MASK_FILE_NAME = "./landmask.dta"
-gdd.download_file_from_google_drive(file_id='1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj', dest_path=LAND_MASK_FILE_NAME, unzip=False)
-land_mask = pd.read_stata(LAND_MASK_FILE_NAME)
+def read_land_mask():
+  land_mask = pd.read_stata(LAND_MASK_FILE_NAME)
 
 # Read the station file, parse it into a usable table, and join relevant information
 def get_stations(station_file_name, country_codes_file_name):
@@ -74,6 +69,8 @@ def get_stations(station_file_name, country_codes_file_name):
 
   # After dividing the world into grid boxes by latitude and longitude, assign each station to a grid box and save the grid box label to the stations table
   gridded_stations_and_country_name = set_station_grid_cells(stations_and_country_name)
+
+  read_land_mask()
 
   # Return our parsed and joined table
   return gridded_stations_and_country_name
