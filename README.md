@@ -4,8 +4,8 @@ This work is designed to produce a single annual temperature anomaly trend for t
 No adjustments or algorithms are run on the data. The Developer may choose to accept or reject flagged data and enable or disable gridding, but the original data is never corrected.
 
 ## Author
-Author: Jon Paul Miles
-Date Created: March 11, 2022
+- Author: Jon Paul Miles
+- Date Created: March 11, 2022
 
 ## License
 MIT License
@@ -21,7 +21,7 @@ Before averaging the temperatures of all 12 months into a single average by year
 3. For each month class (Jan to Jan, Feb to Feb, Mar to Mar), calculate anomalies from their respective fixed baselines.
 4. For each year in the station's data, average all twelve monthly anomalies for that year into a single value. Up to eleven missing months are allowed since we are averaging anomalies.
 5. Divide the world into a grid of latitude and longitude values and associate each station with a grid box based on the station's latitude and longitude.
-6. If the Developer chooses to use gridding (USE_GRIDDING=True), group stations by grid box and average their anomalies by year. An average for the grid box is calculated if it has one or greater number of stations.
+6. If the Developer chooses to use gridding (`USE_GRIDDING = True`), group stations by grid box and average the grid box anomalies by year. An average for the grid box is calculated if it has one or greater number of stations.
 7. The surface area of each grid box decreases with latitude according to the cosine of latitude, so if the Developer is using gridding, we average all grid box anomalies (that have a station) by year weighing each grid by the cosine of the mid-latitude for that grid.
 8. If the Developer wishes to weigh each grid box by it's land / water ratio (`INCLUDE_LAND_RATIO_IN_WEIGHT = True`) to get a strict land temperature, the cosine of latitude weighing will be multiplied by the percent of land making up that grid box.
 9. If the Developer ignores gridding, all stations will be averaged by year into an average by year for all stations.
