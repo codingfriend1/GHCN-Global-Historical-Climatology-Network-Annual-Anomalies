@@ -1,7 +1,7 @@
 import datetime
 import math
 
-VERSION = 'v4'
+VERSION = 'v4' #v3
 
 DIRECTORY = r'~/Downloads/ghcnm/v4'
 
@@ -10,19 +10,21 @@ FOLDER = 'ghcnm.v4.0.1.20220308'
 # FOLDER = 'ghcnm.v3.3.0.20190821'
 
 # The name of the GHCN-M associated Station Data (ghcnm.element.v4.#.#.YYYYMMDD.version.inv)
-STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
+# STATION_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qcu.inv"
 # STATION_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qca.inv"
+STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.inv"
 # STATION_FILE_NAME = "ghcnm.tavg.v4.0.1.20220311.qcf.inv"
 
 # The name of the main GHCN-M data file (ghcnm.element.v4.#.#.YYYYMMDD.version.dat)
-DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
+# DATA_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qcu.dat"
 # DATA_FILE_NAME = "ghcnm.tavg.v3.3.0.20190821.qca.dat"
+# DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220308.qcu.dat"
 # DATA_FILE_NAME = "ghcnm.tavg.v4.0.1.20220311.qcf.dat"
-# DATA_FILE_NAME = "test.dat"
+DATA_FILE_NAME = "test.dat"
 
 # GHCN-M v4 Associated Country Code to Country Name file
-COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
 # COUNTRIES_FILE_NAME = "country-codes"
+COUNTRIES_FILE_NAME = "ghcnm-countries.txt"
 
 # Earliest year you want to consider in the data
 YEAR_RANGE_START = 1850
@@ -39,11 +41,18 @@ PURGE_FLAGS = False
 # The acceptable amount of data available (subtracting missing data) before an anomaly calculation can be made (in decimal form)
 ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 
-# 
-# The range to consider when calculating trends for console output
-# 
-ABSOLUTE_START_YEAR = 1900 # Inclusive
+# Do you wish to assign each station to a 5x5 Latitude / Longitude grid and average the grid boxes weighted by the cosine of the mid-latitude point for that grid?
+USE_GRIDDING = True
 
+# Do you also wish to include land to water ratios in the calculation of the weight of each grid box? To get a purely land based result?
+INCLUDE_LAND_RATIO_IN_WEIGHT = False
+
+# Whether to create a column in our final excel sheet by station for its anomalies. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amount.
+PRINT_STATION_ANOMALIES = False
+
+
+# The range to consider when calculating trends for console output, does not effect excel results
+ABSOLUTE_START_YEAR = 1900 # Inclusive
 ABSOLUTE_END_YEAR = 2000 # Non-inclusive
 
 # 
@@ -84,6 +93,8 @@ print(f"Anomaly reference average range: {REFERENCE_START_YEAR}-{REFERENCE_START
 print(f"Percent of data necessary for reliable reference average: {normal_round(ACCEPTABLE_AVAILABLE_DATA_PERCENT * 100)}%")
 print(f"Trend range: {ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}")
 print(f"Purging flagged data: {PURGE_FLAGS}")
+print(f"Use Gridding: {USE_GRIDDING}")
+print(f"Include land / water ratio in Grid Weight: {INCLUDE_LAND_RATIO_IN_WEIGHT}")
 print("\n")
 
 print(f"Please wait a few seconds...")

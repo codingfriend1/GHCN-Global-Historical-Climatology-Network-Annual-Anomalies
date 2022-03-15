@@ -1,3 +1,8 @@
+'''
+  Author: Jon Paul Miles
+  Date Created: March 11, 2022
+'''
+
 from constants import *
 import math
 import pandas as pd
@@ -81,7 +86,13 @@ def compose_file_name(country_code=""):
   if country_code:
     country_code_text = f"{country_code}-"
 
-  OUTPUT_FILE_NAME = f"{country_code_text}{DATA_FILE_NAME}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}.xlsx"
+  gridding_text = ""
+  if USE_GRIDDING:
+    gridding_text = f"-gridded-weighted-by-cosine"
+    if INCLUDE_LAND_RATIO_IN_WEIGHT:
+      gridding_text = gridding_text + "-and-land-ratio"
+
+  OUTPUT_FILE_NAME = f"{country_code_text}{DATA_FILE_NAME}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{gridding_text}.xlsx"
 
   return OUTPUT_FILE_NAME
 
@@ -97,33 +108,58 @@ def output_file(excel_data, country_code=""):
 
   EXCEL_WRITER.save()
 
-def generate_year_range_series():
-  return pd.concat([pd.Series(['Weight']), pd.Series(range(YEAR_RANGE_START, YEAR_RANGE_END))]).reset_index(drop = True)
+def generate_year_range_series(label):
+  return pd.concat([pd.Series([label]), pd.Series(range(YEAR_RANGE_START, YEAR_RANGE_END))]).reset_index(drop = True)
 
 def generate_average_anomalies_list(label, average_of_all_anomalies):
   return pd.concat([pd.Series([label]), average_of_all_anomalies]).reset_index(drop = True)
 
+# Prepare our spreadsheet for output as an Excel File
 def create_excel_file(annual_anomalies_by_grid, average_anomolies_of_all_stations_in_country, avg_annual_anomalies_of_all_grids_divided, country_name="", country_code=""):
+
+  # When gridding this row represents the weight of each grid box, without gridding it represents the City, Country of each station
+  year_sub_label = 'Weight' if USE_GRIDDING else "Location"
 
   # Start the base of our xlsx data
   excel_data = {
-    "Year": generate_year_range_series()
+    "Year": generate_year_range_series(year_sub_label)
   }
 
-  excel_data["Average Anomolies"] = generate_average_anomalies_list("All grids", average_anomolies_of_all_stations_in_country)
-  excel_data["Average Anomolies / 100"] = generate_average_anomalies_list("All grids", avg_annual_anomalies_of_all_grids_divided)
+  # Use a different label depending on if we are gridding the results or simply averaging all stations
+  sub_label = "All grids" if USE_GRIDDING else "All Stations"
 
-  for grid_cell_label, grid in annual_anomalies_by_grid.iteritems():
-    
-    excel_data[grid_cell_label] = grid
+  # Print a column with the average anomalies by year for all stations or grid boxes
+  excel_data["Average Anomolies"] = generate_average_anomalies_list(sub_label, average_anomolies_of_all_stations_in_country)
+
+  # Print a column with the average anomalies by year for all stations or grid boxes divided by 100
+  excel_data["Average Anomolies / 100"] = generate_average_anomalies_list(sub_label, avg_annual_anomalies_of_all_grids_divided)
+
+  if USE_GRIDDING:
+
+    # Create a column for each box of our latitude/longitude grid with it's anomalies
+    for grid_cell_label, grid in annual_anomalies_by_grid.iteritems():
+
+      excel_data[grid_cell_label] = grid
+
+  elif PRINT_STATION_ANOMALIES:
+
+    # Print a column for each station anomaly. In GHCNm v4, using all stations, this will cause the program to crash because Excel cannot have a file with 27k columns. But it is useful for testing smaller samples.
+
+    annual_anomalies_by_grid.drop(columns=[2], axis=1, inplace=True)
+
+    for grid_cell_label, grid in annual_anomalies_by_grid.iterrows():
+      
+      excel_data[grid.iloc[0]] = grid.iloc[1:].to_numpy()
 
   output_file(excel_data)
 
 def create_final_excel_file(anomalies_by_country, country_name, country_code):
 
+  year_label = 'Weight' if USE_GRIDDING else "Location"
+
   # Start the base of our xlsx data
   excel_data = {
-    "Year": generate_year_range_series()
+    "Year": generate_year_range_series(year_label)
   }
 
   # MATH - Average annual anomolies across all stations and add to excel_data

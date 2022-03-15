@@ -1,3 +1,8 @@
+'''
+  Author: Jon Paul Miles
+  Date Created: March 11, 2022
+'''
+
 from constants import *
 import pandas as pd
 import numpy as np
@@ -26,7 +31,7 @@ def average_reference_years_by_month(temperatures_by_month):
 
   reference_range = temperatures_by_month.iloc[:, range(INDEX_FOR_REFERENCE_START_YEAR, INDEX_FOR_REFERENCE_END_YEAR) ]
 
-  reference_averages_by_month = reference_range.mean(axis=1, skipna=True, level=None, numeric_only=True).round(2)
+  baseline_by_month = reference_range.mean(axis=1, skipna=True, level=None, numeric_only=True).round(2)
 
   # Determine the amount of necessary values to form a reliable average
   necessary_minimum_readings_to_form_a_reliable_average = determine_readings_needed_for_reliable_average(len(reference_range))
@@ -38,9 +43,9 @@ def average_reference_years_by_month(temperatures_by_month):
 
     if number_of_yearly_readings_within_reference_range < necessary_minimum_readings_to_form_a_reliable_average:
 
-      reference_averages_by_month.iat[row_index] = math.nan
+      baseline_by_month.iat[row_index] = math.nan
 
-  return reference_averages_by_month
+  return baseline_by_month
 
 
 # An anomaly is calculated by subtracting a reference average from the current reading
@@ -53,7 +58,7 @@ def calculate_anomaly(temperature, reference_average):
 
 
 # Within each month class, calculate annual anomalies using array of fixed reference averages provided
-def calculate_anomalies_by_month_class(temperatures_by_month, reference_averages_by_month):
+def calculate_anomalies_by_month_class(temperatures_by_month, baseline_by_month):
 
   anomalies_by_month = [
     [], # jan
@@ -72,7 +77,7 @@ def calculate_anomalies_by_month_class(temperatures_by_month, reference_averages
 
   for row_index, temperature_row in temperatures_by_month.iterrows():
 
-    reference_average_for_row = reference_averages_by_month.iat[row_index]
+    reference_average_for_row = baseline_by_month.iat[row_index]
 
     for year_value in temperature_row:
 
