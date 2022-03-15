@@ -1,5 +1,5 @@
 # GHCNm
-This work is designed to produce a single annual temperature anomaly trend for the Global Historical Climatology Network using either an average of all individual station anomalies or an average of gridded station anomalies. The process is highly customizable through settings in `constants.py`. It works both with version 3 (v3) and version 4 (v4), both adjusted and unadjusted datasets.
+This work is designed to produce annual temperature anomalies for all land based temperatures from the Global Historical Climatology Network using either an average of all individual station anomalies or an average of gridded station anomalies. The process is highly customizable through settings in `constants.py`. It works with both version 3 (v3) and version 4 (v4), adjusted and unadjusted datasets.
 
 No adjustments or algorithms are run on the data. The Developer may choose to accept or reject flagged data and enable or disable gridding, but the original data is never corrected.
 
