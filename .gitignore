@@ -7,3 +7,11 @@ pids
 *.pid
 *.seed
 .DS_Store
+
+ghcnm.v3*
+country-codes
+
+ghcnm.v4*
+ghcnm-countries.txt
+
+landmask.dta

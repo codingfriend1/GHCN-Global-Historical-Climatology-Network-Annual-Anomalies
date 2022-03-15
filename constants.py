@@ -1,7 +1,7 @@
 import datetime
 import math
 
-VERSION = 'v3' #v3
+VERSION = 'v3' #v3, v4
 QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
 
 # Earliest year you want to consider in the data
