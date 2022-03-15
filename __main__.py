@@ -36,16 +36,7 @@ station_iteration = 0
 annual_anomalies_by_station = []
 
 # For each station file
-for station_id, temperature_data_for_station in TEMPERATURES:  
-
-  # Increase the station iteration for console output
-  station_iteration += 1
-
-  # Get the station's location
-  station_location = stations.get_station_address(station_id, STATIONS)
-
-  # Get the station's grid box label
-  station_gridbox = stations.get_station_gridbox(station_id, STATIONS)
+for station_id, temperature_data_for_station in TEMPERATURES:
 
   # Build an array based on the Year Range constants and include the matching line from the file on each year if its data evaluates as acceptable based on its flags
   temperatures_by_month = temperatures.fit_permitted_data_to_range(temperature_data_for_station)
@@ -58,6 +49,18 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 
   # For each year, average the anomalies for all 12 months and return an list of average anomalies by year. It is ok if some months are missing data since we first converted them to anomalies before averaging.
   average_anomalies_by_year = anomaly.average_monthly_anomalies_by_year(anomalies_by_month)
+
+  # Get the station's location
+  station_location = stations.get_station_address(station_id, STATIONS)
+
+  # Get the station's grid box label
+  station_gridbox = stations.get_station_gridbox(station_id, STATIONS)
+
+  # Add important metadata to the beginning of each station's column (station's ID, station's location, and station's grid box label). The grid box label is important if we wish to average by grid instead of by station.
+  average_anomalies_by_year_and_station_metadata = pd.concat([ pd.Series([station_id, station_location, station_gridbox]), average_anomalies_by_year ]).reset_index(drop = True)
+
+  # Remember that array we created at the beginning to contain lists of annual anomalies for every station? It's no good unless we add the annual anomalies for this station to it
+  annual_anomalies_by_station.append(average_anomalies_by_year_and_station_metadata)
 
   # We make console output interesting by calculating the trend/slope of the annual anomalies for this station using least squares fitting. Values above 0 indicate a warming trend, values below zero indicate a cooling trend.
   anomaly_trend = anomaly.calculate_trend(average_anomalies_by_year)
@@ -72,14 +75,11 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   # We wish to give the Developer a quick reference to the station's starting and ending years.
   start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
 
+  # Increase the station iteration for console output
+  station_iteration += 1
+
   # Output Progress and Trends to Console
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
-
-  # Add important metadata to the beginning of each station's column (station's ID, station's location, and station's grid box label). The grid box label is important if we wish to average by grid instead of by station.
-  average_anomalies_by_year_and_station_metadata = pd.concat([ pd.Series([station_id, station_location, station_gridbox]), average_anomalies_by_year ]).reset_index(drop = True)
-
-  # Remember that array we created at the beginning to contain lists of annual anomalies for every station? It's no good unless we add the annual anomalies for this station to it
-  annual_anomalies_by_station.append(average_anomalies_by_year_and_station_metadata)
 
 # Remember those statistics we collected earlier? We finally show them to the Developer in the Console.
 output.print_summary_to_console(TOTAL_STATIONS)
