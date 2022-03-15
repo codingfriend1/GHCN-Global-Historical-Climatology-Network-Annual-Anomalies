@@ -8,10 +8,12 @@ from google_drive_downloader import GoogleDriveDownloader as gdd
 
 # Validate VERSION and QUALITY_CONTROL_DATASET
 if VERSION == 'v4' and not QUALITY_CONTROL_DATASET in ['qcu', 'qce', 'qcf']:
-  print("For Version 4 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu', 'qce', or 'qcf'.")
+  print("\nFor Version 4 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted), or 'qcf' (quality-control adjusted).")
+  print('See this readme file to decide which one to use: https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt\n')
   quit()
 elif VERSION == 'v3' and not QUALITY_CONTROL_DATASET in ['qcu', 'qca']:
-  print("For Version 3 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' or 'qca'.")
+  print("\nFor Version 3 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted) or 'qca' (quality-control adjusted).")
+  print('See this readme file to decide which one to use: https://www.ncei.noaa.gov/pub/data/ghcn/v3/README\n')
   quit()
 elif not VERSION in ['v3', 'v4']:
   print("Sorry, but only GHCNm version's 3 and 4 are supported at this time. In `constants.py` please set `VERSION = 'v4'` to 'v3' or 'v4'")

@@ -10,6 +10,14 @@ No adjustments or algorithms are run on the data. The Developer may choose to ac
 ## License
 MIT License
 
+## How to run
+
+- Install Python 3 if not already installed.
+- Open a folder to this project in terminal.
+- Install project dependencies by running this command  `pip3 install -r requirements.txt`.
+- Set your variables/settings in `constants.py`
+- Run the script: `python3 ./ghcn-anomalies`
+
 ## Steps
 These are the steps used to recreate the results.
 

@@ -2,7 +2,7 @@ import datetime
 import math
 
 # Which version of GHCNm to work with
-VERSION = 'v3' #v3, v4
+VERSION = 'v4' #v3, v4
 
 # Which Quality Controlled dataset to work with, adjusted or unadjusted
 QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
