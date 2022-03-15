@@ -16,7 +16,7 @@ MIT License
 - Open a folder to this project in terminal.
 - Install project dependencies by running this command  `pip3 install -r requirements.txt`.
 - Set your variables/settings in `constants.py`
-- Run the script: `python3 ./ghcnm-main`
+- Run the script: `python3 .` or replace `.` with whatever path leads to this project folder.
 
 ## Steps
 These are the steps used to recreate the results.
