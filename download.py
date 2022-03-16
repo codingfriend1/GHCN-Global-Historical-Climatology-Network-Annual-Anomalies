@@ -1,3 +1,8 @@
+'''
+  Author: Jon Paul Miles
+  Date Created: March 15, 2022
+'''
+
 from constants import *
 
 import urllib.request

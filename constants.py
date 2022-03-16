@@ -1,3 +1,8 @@
+'''
+  Author: Jon Paul Miles
+  Date Created: March 11, 2022
+'''
+
 import datetime
 import math
 
