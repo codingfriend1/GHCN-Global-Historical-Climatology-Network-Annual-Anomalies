@@ -12,14 +12,16 @@ import pandas as pd
 import numpy as np
 import os
 
-TODAY_DATE = TODAY.strftime("%Y%m%d")
+import download_daily
 
 # All GHCNd .dly station files have 31 days even if some days are missing
 DAYS_IN_MONTH = 31
 
 
+DAILY_VERSION_NAME = download_daily.get_version()
+
 # Prepare our mega file to save all combined station temperatures too
-OUTPUT_FILE_URL = f"./ghcnd.tavg.v4.{TODAY_DATE}.qcu.dat"
+OUTPUT_FILE_URL = f"./ghcnd.tavg.{DAILY_VERSION_NAME}.qcu.dat"
 
 # If the file already exists, erase it and start over
 if os.path.exists(OUTPUT_FILE_URL):
