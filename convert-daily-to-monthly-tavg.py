@@ -17,8 +17,9 @@ import download_daily
 # All GHCNd .dly station files have 31 days even if some days are missing
 DAYS_IN_MONTH = 31
 
-
+# Get the version number of the latest daily station data
 DAILY_VERSION_NAME = download_daily.get_version()
+FOLDER_WITH_DAILY_DATA = download_daily.get_daily_data()
 
 # Prepare our mega file to save all combined station temperatures too
 OUTPUT_FILE_URL = f"./ghcnd.tavg.{DAILY_VERSION_NAME}.qcu.dat"
@@ -189,19 +190,26 @@ def parse_daily_row(unparsed_row):
 
   return parsed_row
 
-# Folder to look for daily station files
-folder_with_daily_station_data = r'./dly_files'  # os.path.join(DIRECTORY, 'test_daily_by_station')
-
 # Find all station data files in folder
 daily_station_files = []
 
+all_stations = os.listdir(FOLDER_WITH_DAILY_DATA)
+
+total_stations = len(all_stations)
+
 # Create an array of all our .dly station file URLs
-for station_file_url in os.listdir(folder_with_daily_station_data):
+for station_file_url in all_stations:
   if 'dly' in station_file_url:
-    daily_station_files.append(os.path.join(folder_with_daily_station_data, station_file_url))
+    daily_station_files.append(os.path.join(FOLDER_WITH_DAILY_DATA, station_file_url))
+
+station_iterator = 0
 
 # For each daily station file
 for station_file_url in daily_station_files:
+
+  station_iterator += 1
+
+  print(f"Composing station {station_iterator} of {total_stations}")
 
   # Read the station file. We will manually parse each line instead of relying on colspecs to improve performance
   state_daily_values = pd.read_csv(station_file_url, header=None)
