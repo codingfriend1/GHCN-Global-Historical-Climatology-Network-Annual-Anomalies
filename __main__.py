@@ -9,6 +9,7 @@ import numpy as np
 import math
 import os
 import datetime
+import time
 
 import download
 import stations
@@ -16,6 +17,8 @@ import temperatures
 import anomaly
 import output
 import download_daily
+
+t0 = time.perf_counter()
 
 STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = ("", "", "")
 
@@ -148,3 +151,18 @@ output.create_excel_file(
 
   data_source = GHCN_TEMPERATURES_FILE_PATH
 )
+
+end_time = time.perf_counter() - t0
+
+minutes, seconds= divmod(end_time, 60)
+hours, remainder_minutes= divmod(minutes, 60)
+
+seconds  = normal_round(seconds)
+
+print(f"Process completed in {hours}h:{remainder_minutes}m:{seconds}s")
+
+total_minutes = seconds / 60
+
+stations_per_minute = normal_round(TOTAL_STATIONS / total_minutes)
+
+print(f"With {'{:,}'.format(TOTAL_STATIONS)} stations, that's {'{:,}'.format(stations_per_minute)} stations / minute\n")
