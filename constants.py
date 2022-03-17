@@ -16,19 +16,19 @@ QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
 YEAR_RANGE_START = 1850
 
 # Leave blank if you wish to use a rolling average
-REFERENCE_START_YEAR = 1901
+REFERENCE_START_YEAR = 1961
 
 # Number of years to consider in the reference average
-REFERENCE_RANGE = 100
+REFERENCE_RANGE = 30
 
 # Whether to purge all readings with Quality Control, Data Measurement, or Data Source flags
 PURGE_FLAGS = False
 
 # The acceptable amount of data available (subtracting missing data) before an anomaly calculation can be made (in decimal form)
-ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.3
+ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 
 # Do you wish to assign each station to a 5x5 Latitude / Longitude grid and average the grid boxes weighted by the cosine of the mid-latitude point for that grid?
-USE_GRIDDING = True
+USE_GRIDDING = False
 
 # Do you also wish to include land to water ratios in the calculation of the weight of each grid box? To get a purely land based result?
 INCLUDE_LAND_RATIO_IN_WEIGHT = False
