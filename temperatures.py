@@ -137,6 +137,7 @@ def parse_temperature_row(unparsed_row_string):
     # We don't want the program to crash if one row has a problem, so we catch the mistake, discard that row and keep moving
     except:
       print('Error parsing row', unparsed_row_string)
+      return False
 
   return parsed_row
 
@@ -157,8 +158,9 @@ def get_temperatures_by_station(url):
     # Split the row string into usable data columns. Monthly sets of temperatures and flags will be represented as an array ([VALUE1, DMFLAG1, QCFLAG1, DSFLAG1]) each taking up one column.
     parsed_row = parse_temperature_row(unparsed_row_string[0])
 
-    # Add the parsed row to the array of the file's parsed rows
-    parsed_file_rows.append(parsed_row)
+    if parsed_row:
+      # Add the parsed row to the array of the file's parsed rows
+      parsed_file_rows.append(parsed_row)
 
   # Convert the parsed_file_rows into a Panda's dataframe.
   temperature_dataframe = pd.DataFrame(parsed_file_rows)

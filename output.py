@@ -156,7 +156,7 @@ def create_excel_file(annual_anomalies_by_station_or_grid, average_anomolies_of_
       
       excel_data[grid.iloc[0]] = grid.iloc[1:].to_numpy()
 
-  output_file(excel_data, "", GHCN_TEMPERATURES_FILE_PATH)
+  output_file(excel_data, GHCN_TEMPERATURES_FILE_PATH)
 
 def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
 
@@ -181,7 +181,7 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
   print(f"\n")
 
 # Print Summaries
-def print_summary_to_console(total_stations):
+def print_summary_to_console(total_stations, GHCN_TEMPERATURES_FILE_PATH):
 
   # print('\n')
   # print('Estimated temperature percent', normal_round(num_of_estimated_temperature_readings / num_of_temperature_readings, 2))

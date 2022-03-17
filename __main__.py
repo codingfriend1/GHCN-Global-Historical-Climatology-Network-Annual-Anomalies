@@ -90,7 +90,7 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
 
 # Remember those statistics we collected earlier? We finally show them to the Developer in the Console.
-output.print_summary_to_console(TOTAL_STATIONS)
+output.print_summary_to_console(TOTAL_STATIONS, GHCN_TEMPERATURES_FILE_PATH)
 
 # If we convert our list of station annual anomalies into a dataframe, it makes it easier to work with.
 annual_anomalies_by_station_dataframe = pd.DataFrame(annual_anomalies_by_station)

@@ -33,9 +33,8 @@ USE_GRIDDING = True
 # Do you also wish to include land to water ratios in the calculation of the weight of each grid box? To get a purely land based result?
 INCLUDE_LAND_RATIO_IN_WEIGHT = False
 
-# Whether to create a column in our final excel sheet by station for its anomalies. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amount.
+# Whether to create a column in our final excel sheet by station for its anomalies. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amounts.
 PRINT_STATION_ANOMALIES = False
-
 
 # The range to consider when calculating trends for console output, does not effect excel results
 ABSOLUTE_START_YEAR = 1901 # Inclusive
