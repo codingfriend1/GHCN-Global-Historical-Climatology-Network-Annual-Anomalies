@@ -154,15 +154,15 @@ output.create_excel_file(
 
 end_time = time.perf_counter() - t0
 
-minutes, seconds= divmod(end_time, 60)
+minutes, remainder_seconds= divmod(end_time, 60)
 hours, remainder_minutes= divmod(minutes, 60)
 
-seconds  = normal_round(seconds)
+seconds  = normal_round(end_time)
 
-print(f"Process completed in {hours}h:{remainder_minutes}m:{seconds}s")
+print(f"Process completed in {int(normal_round(hours))}h:{int(normal_round(remainder_minutes))}m:{int(normal_round(remainder_seconds))}s")
 
 total_minutes = seconds / 60
 
 stations_per_minute = normal_round(TOTAL_STATIONS / total_minutes)
 
-print(f"With {'{:,}'.format(TOTAL_STATIONS)} stations, that's {'{:,}'.format(stations_per_minute)} stations / minute\n")
+print(f"With {'{:,}'.format(TOTAL_STATIONS)} stations, that's {'{:,}'.format(stations_per_minute)} stations/minute.\n")
