@@ -24,6 +24,7 @@ https://modernsurvivalblog.com/wp-content/uploads/2013/09/united-states-latitude
 GRID_SIZE = 5
 
 def read_land_mask():
+  global land_mask
   land_mask = pd.read_stata(LAND_MASK_FILE_NAME)
 
 # Read the station file, parse it into a usable table, and join relevant information
@@ -50,7 +51,7 @@ def get_stations(station_file_name, country_codes_file_name):
   elif VERSION == "v4":
     colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
     dtypes['country_code'] = "object"
-  elif VERSION == "daily":
+  elif VERSION in ["daily", "test"]:
     colspecs = [(0,2), (0,12), (12,20), (21,30), (31,37), (41,71)]
     dtypes['country_code'] = "object"
 
@@ -128,7 +129,7 @@ def set_station_grid_cells(stations):
 Connolly, Ronan & Soon, Willie & Connolly, Michael & Baliunas, Sallie & Berglund, Johan & Butler, C. & Cionco, Rodolfo & Elías, Ana & Fedorov, Valery & Harde, Hermann & Henry, Gregory & Hoyt, Douglas & Humlum, Ole & Legates, David & Luening, Sebastian & Scafetta, Nicola & Solheim, J.-E & Szarka, Laszlo & Van Loon, Harry & Zhang, Weijia. (2021). How much has the Sun influenced Northern Hemisphere temperature trends? An ongoing debate. 
 
 '''
-def determine_grid_weight(grid_label):
+def determine_grid_weight(grid_label, include_land_ratio_in_weight = False):
 
   # Extract the center latitude and longitude of the cell from the grid_label
   mid_latitude = float(grid_label.split(" ")[0])
@@ -147,7 +148,7 @@ def determine_grid_weight(grid_label):
   grid_weight = np.cos( mid_latitude * (np.pi / 180 ) )
 
   # If the user wishes to reduce the weight of the grid box further by the percentage of the grid that is made of water, they may enable this in the constants.py file
-  if INCLUDE_LAND_RATIO_IN_WEIGHT:
+  if include_land_ratio_in_weight:
     # Since we are only considering land temperatures and not water, we need to determine the percent of the land that consists of land
     matching_land_mask_row = land_mask.loc[land_mask['gridbox'] == grid_label].to_numpy()[0]
     land_percent = float(matching_land_mask_row[0])

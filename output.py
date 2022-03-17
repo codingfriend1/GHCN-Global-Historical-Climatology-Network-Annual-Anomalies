@@ -91,13 +91,7 @@ def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
 
   TEMPERATURE_FILE = get_file_name_from_path(GHCN_TEMPERATURES_FILE_PATH)
 
-  gridding_text = ""
-  if USE_GRIDDING:
-    gridding_text = f"-gridded-weighted-by-cosine"
-    if INCLUDE_LAND_RATIO_IN_WEIGHT:
-      gridding_text = gridding_text + "-and-land-ratio"
-
-  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{gridding_text}.xlsx"
+  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}.xlsx"
 
   return OUTPUT_FILE_NAME
 
@@ -113,50 +107,84 @@ def output_file(excel_data, GHCN_TEMPERATURES_FILE_PATH):
 
   EXCEL_WRITER.save()
 
-def generate_year_range_series(label):
-  return pd.concat([pd.Series([label]), pd.Series(range(YEAR_RANGE_START, YEAR_RANGE_END))]).reset_index(drop = True)
+def generate_column_for_output(label, sublabel, data):
+
+  if PRINT_STATION_ANOMALIES:
+    return pd.concat([pd.Series([label, sublabel]), data]).reset_index(drop = True)
+  else:
+    return pd.concat([pd.Series([sublabel]), data]).reset_index(drop = True)
 
 def generate_average_anomalies_list(label, average_of_all_anomalies):
   return pd.concat([pd.Series([label]), average_of_all_anomalies]).reset_index(drop = True)
 
 # Prepare our spreadsheet for output as an Excel File
-def create_excel_file(annual_anomalies_by_station_or_grid, average_anomolies_of_all_stations_or_all_grids, avg_annual_anomalies_of_all_grids_divided, GHCN_TEMPERATURES_FILE_PATH):
+def create_excel_file(
+  average_of_stations = [],
+  average_of_stations_divided = [],
 
-  # When gridding this row represents the weight of each grid box, without gridding it represents the City, Country of each station
-  year_sub_label = 'Weight' if USE_GRIDDING else "Location"
+  average_of_grids = [],
+  average_of_grids_divided = [],
+
+  average_of_grids_by_land_ratio = [],
+  average_of_grids_by_land_ratio_divided = [],
+
+  anomalies_by_grid = [],
+  anomalies_by_station = [],
+
+  data_source = "unknown",
+):
+
+  year_sublabel = "Grid Weight" if not PRINT_STATION_ANOMALIES else "Grid Box"
+
+  stations_average_sublabel = "Equal Weight" if not PRINT_STATION_ANOMALIES else ""
 
   # Start the base of our xlsx data
   excel_data = {
-    "Year": generate_year_range_series(year_sub_label)
+    "Year": generate_column_for_output("Location", year_sublabel, pd.Series(range(YEAR_RANGE_START, YEAR_RANGE_END)))
   }
+  
+  # Prepare each column of the dataframe to be saved
+  excel_data["Average of stations"] = generate_column_for_output(
+    "All Stations", stations_average_sublabel, average_of_stations
+  )
 
-  # Use a different label depending on if we are gridding the results or simply averaging all stations
-  sub_label = "All grids" if USE_GRIDDING else "All Stations"
+  excel_data["Average of stations / 100"] = generate_column_for_output(
+    "All Stations", stations_average_sublabel, average_of_stations_divided
+  )
 
-  # Print a column with the average anomalies by year for all stations or grid boxes
-  excel_data["Average Anomolies"] = generate_average_anomalies_list(sub_label, average_anomolies_of_all_stations_or_all_grids)
+  excel_data["Average of Grids"] = generate_column_for_output(
+    "All Grids", "", average_of_grids.iloc[1:]
+  )
 
-  # Print a column with the average anomalies by year for all stations or grid boxes divided by 100
-  excel_data["Average Anomolies / 100"] = generate_average_anomalies_list(sub_label, avg_annual_anomalies_of_all_grids_divided)
+  excel_data["Average of Grids / 100"] = generate_column_for_output(
+    "All Grids", "", average_of_grids_divided
+  )
 
-  if USE_GRIDDING:
+  excel_data["Average of grids weighed with land ratio"] = generate_column_for_output(
+    "All Grids", "", average_of_grids_by_land_ratio.iloc[1:]
+  )
+
+  excel_data["Average of grids weighed with land ratio / 100"] = generate_column_for_output(
+    "All Grids", "", average_of_grids_by_land_ratio_divided
+  )
+
+  if PRINT_STATION_ANOMALIES:
+
+    # Print a column for each station anomaly. In GHCNm v4, using all stations, this will cause the program to crash because Excel cannot have a file with 27k columns. But it is useful for testing smaller samples.
+    # anomalies_by_station.drop(columns=[2], axis=1, inplace=True)
+
+    for grid_cell_label, grid in anomalies_by_station.iterrows():
+      
+      excel_data[grid.iloc[0]] = generate_column_for_output(grid.iloc[1], grid.iloc[2], pd.Series(grid.iloc[3:].to_numpy()))
+
+  else:
 
     # Create a column for each box of our latitude/longitude grid with it's anomalies
-    for grid_cell_label, grid in annual_anomalies_by_station_or_grid.iteritems():
+    for grid_cell_label, grid in anomalies_by_grid.iteritems():
 
       excel_data[grid_cell_label] = grid
 
-  elif PRINT_STATION_ANOMALIES:
-
-    # Print a column for each station anomaly. In GHCNm v4, using all stations, this will cause the program to crash because Excel cannot have a file with 27k columns. But it is useful for testing smaller samples.
-
-    annual_anomalies_by_station_or_grid.drop(columns=[2], axis=1, inplace=True)
-
-    for grid_cell_label, grid in annual_anomalies_by_station_or_grid.iterrows():
-      
-      excel_data[grid.iloc[0]] = grid.iloc[1:].to_numpy()
-
-  output_file(excel_data, GHCN_TEMPERATURES_FILE_PATH)
+  output_file(excel_data, data_source)
 
 def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
 
@@ -168,9 +196,7 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Stations file", get_file_name_from_path(STATION_FILE_PATH)],
     ["Anomaly reference average range", f"{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR + REFERENCE_RANGE - 1}"],
     ["Trend range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}"],
-    ["Purging flagged data", str(PURGE_FLAGS)],
-    ["Use gridding", str(USE_GRIDDING)],
-    ["Include land / water ratio in Grid Weight", str(INCLUDE_LAND_RATIO_IN_WEIGHT)]
+    ["Purging flagged data", str(PURGE_FLAGS)]
   ])
 
   my_table.set_deco(Texttable.HEADER | Texttable.BORDER)

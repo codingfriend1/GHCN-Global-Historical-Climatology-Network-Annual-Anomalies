@@ -7,7 +7,7 @@ import datetime
 import math
 
 # Which version of GHCNm to work with
-VERSION = 'test' #v3, v4
+VERSION = 'daily' #v3, v4
 
 # Which Quality Controlled dataset to work with, adjusted or unadjusted
 QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
@@ -27,14 +27,8 @@ PURGE_FLAGS = False
 # The acceptable amount of data available (subtracting missing data) before an anomaly calculation can be made (in decimal form)
 ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 
-# Do you wish to assign each station to a 5x5 Latitude / Longitude grid and average the grid boxes weighted by the cosine of the mid-latitude point for that grid?
-USE_GRIDDING = False
-
-# Do you also wish to include land to water ratios in the calculation of the weight of each grid box? To get a purely land based result?
-INCLUDE_LAND_RATIO_IN_WEIGHT = False
-
-# Whether to create a column in our final excel sheet by station for its anomalies. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amounts.
-PRINT_STATION_ANOMALIES = False
+# Whether to create a columns for each station's annual anomalies in the final Excel sheet. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amounts. When set to False, annual anomaly columns are printed for each grid quadrant instead.
+PRINT_STATION_ANOMALIES = True
 
 # The range to consider when calculating trends for console output, does not effect excel results
 ABSOLUTE_START_YEAR = 1901 # Inclusive

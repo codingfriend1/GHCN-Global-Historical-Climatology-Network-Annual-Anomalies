@@ -12,6 +12,7 @@ import urllib.request
 import tarfile
 import glob
 
+from constants import *
 import download
 
 UNEXTRACTED_DAILY_FILE = 'ghcnd_all.tar.gz'

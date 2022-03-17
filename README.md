@@ -34,15 +34,15 @@ These are the steps used to recreate the results.
 
 6. Divide the world into a grid of latitude and longitude quadrants (5°x5°) and associate each station with a grid quadrant based on the station's latitude and longitude.
 
-7. If the Developer chooses to use gridding (`USE_GRIDDING = True`), group stations by grid quadrant and average the station anomalies within that grid quadrant by year. An average for a grid quadrant is calculated if it has at least one station.
+7. Average the station anomalies within each grid quadrant by year. An average for a grid quadrant is calculated if it has at least one station.
 
 8. Because the surface area of each grid quadrant decreases with latitude according to the cosine of latitude, we average all grid quadrant anomalies (that have a station) by year weighing each grid by the cosine of the mid-latitude for that grid.
 
-9. If the Developer wishes to weigh each grid quadrant by it's land / water ratio, `INCLUDE_LAND_RATIO_IN_WEIGHT = True` will provide a strictly land based temperature. The cosine of latitude weighing will be multiplied by the percent of land making up that grid quadrant.
+9. In a separate list, calculate the weight of each grid quadrant by multiplying the cosine weighting of each grid by the percent of land in each grid quadrant.
 
-10. If the Developer ignores gridding, all stations will be averaged by year in a global anomaly average by year.
+10. Create a global annual anomaly list by average all stations, a separate global annual anomaly list by averaging all grid quadrants, and a third global annual anomaly list by averaging all grid quadrants with alternative, land-based weighting.
 
-11. The final average of either the grid quadrants or stations will be saved to an Excel file. Because GHCNm v4 has over 27k stations, the individual station anomalies cannot be printed to the Excel file without resulting in a file too large to save. However, if gridding is used, the anomalies for each grid quadrant are included in the file. If the Developer believes the resulting file will not be too large, setting `PRINT_STATION_ANOMALIES = True` will attempt to save the annual anomaly trends for each station to the Excel file when not gridding. This may be useful when testing smaller number of stations.
+11. Save the result to an Excel file. Because GHCNm v4 has over 27k stations, the individual station anomalies cannot be printed to the Excel file without resulting in a file too large to save. However, annual anomalies for each grid quadrant will be saved. If the Developer believes the resulting file will not be too large, setting `PRINT_STATION_ANOMALIES = True` will attempt to save the annual anomaly trends for each station to the Excel file instead of each grid quadrant. This may be useful when testing smaller number of stations.
 
 12. While the Developer waits for the calculations to process, the console will display each station ID, start and end year for the station being processed, name and country, grid quadrant, anomaly and absolute temperature trends (slope) for each station. The absolute temperature trend is calculated from the absolute temperature data for each month class separately and all resulting slopes are averaged into one slope for the station. The trend will only use temperature data between the `ABSOLUTE_START_YEAR` and `ABSOLUTE_END_YEAR` and will require the same minimum amount of available data in this range based on the `ACCEPTABLE_AVAILABLE_DATA_PERCENT`. These trends do not factor into the Excel sheet, but statistics will be collected on each station's trends and a final average of all absolute temperature trends will be displayed in the console at the end of the process. 
 

@@ -112,7 +112,7 @@ def average_weighted_grid_anomalies_by_year(anomalies_by_grid):
   return average_anomalies_by_year
 
 
-def average_anomalies_by_year_by_grid(lists_of_anomalies):
+def average_anomalies_by_year_by_grid(lists_of_anomalies, include_land_ratio_in_weight = False):
 
   station_gridbox_row = 2
 
@@ -123,7 +123,7 @@ def average_anomalies_by_year_by_grid(lists_of_anomalies):
   for grid_label, stations_in_grid in stations_grouped_by_gridbox:
 
     # Determine the weight to give the grid based on it's land and land / water ratio
-    grid_weight = normal_round(stations.determine_grid_weight(grid_label), 4)
+    grid_weight = normal_round(stations.determine_grid_weight(grid_label, include_land_ratio_in_weight = include_land_ratio_in_weight), 4)
 
     # Average all the land stations for this grid
     grid_average_by_year = stations_in_grid.mean(axis=0, skipna=True, level=None, numeric_only=True).round(2)

@@ -92,32 +92,59 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 # Remember those statistics we collected earlier? We finally show them to the Developer in the Console.
 output.print_summary_to_console(TOTAL_STATIONS, GHCN_TEMPERATURES_FILE_PATH)
 
+
+
 # If we convert our list of station annual anomalies into a dataframe, it makes it easier to work with.
 annual_anomalies_by_station_dataframe = pd.DataFrame(annual_anomalies_by_station)
 
-# If the Developer wishes to grid the data:
-if USE_GRIDDING:
+# Separate stations into their respective grid boxes and average all anomalies by year per grid box
+annual_anomalies_by_grid = anomaly.average_anomalies_by_year_by_grid(annual_anomalies_by_station_dataframe)
 
-  # Separate stations into their respective grid boxes and average all anomalies by year per grid box
-  annual_anomalies_by_grid = anomaly.average_anomalies_by_year_by_grid(annual_anomalies_by_station_dataframe)
+annual_anomalies_by_grid_weighed_by_land_ratio = anomaly.average_anomalies_by_year_by_grid(
+  annual_anomalies_by_station_dataframe, 
+  include_land_ratio_in_weight = True
+)
 
-  # Weight each grid box by the cosine of the mid-latitude point for that grid box (and possibly the land ratio) and average all grid boxes with data. The results is a list of global anomalies by year.
-  avg_annual_anomalies_of_all_grids = anomaly.average_weighted_grid_anomalies_by_year(annual_anomalies_by_grid)
+# Weight each grid box by the cosine of the mid-latitude point for that grid box (and possibly the land ratio) and average all grid boxes with data. The results is a list of global anomalies by year.
+avg_annual_anomalies_of_all_grids = anomaly.average_weighted_grid_anomalies_by_year(annual_anomalies_by_grid)
 
-  # Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
-  avg_annual_anomalies_of_all_grids_divided = avg_annual_anomalies_of_all_grids.iloc[1:].apply(lambda v : normal_round(v / 100, 3))
+# Also weigh each grid by land ratio
+avg_annual_anomalies_of_all_grids_weighed_by_land_ratio = anomaly.average_weighted_grid_anomalies_by_year(
+  annual_anomalies_by_grid_weighed_by_land_ratio
+)
 
-  # Finally prepare the data for Excel and save
-  output.create_excel_file(annual_anomalies_by_grid, avg_annual_anomalies_of_all_grids[1:], avg_annual_anomalies_of_all_grids_divided, GHCN_TEMPERATURES_FILE_PATH)
+# Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
+avg_annual_anomalies_of_all_grids_divided = avg_annual_anomalies_of_all_grids.iloc[1:].apply(
+  lambda v : normal_round(v / 100, 3)
+)
 
-# If we are skipping gridding:
-else:
+avg_annual_anomalies_of_all_grids_weighted_by_land_ratio_divided = avg_annual_anomalies_of_all_grids_weighed_by_land_ratio.iloc[1:].apply(
+    lambda v : normal_round(v / 100, 3)
+  )
 
-  # Average annual anomolies across all stations
-  average_anomolies_of_all_stations = anomaly.average_monthly_anomalies_by_year(annual_anomalies_by_station_dataframe)
+# Average annual anomolies across all stations
+average_anomolies_of_all_stations = anomaly.average_monthly_anomalies_by_year(
+  annual_anomalies_by_station_dataframe
+)
 
-  # Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
-  average_anomolies_of_all_stations_divided = average_anomolies_of_all_stations.apply(lambda v : normal_round(v / 100, 3))
+# Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
+average_anomolies_of_all_stations_divided = average_anomolies_of_all_stations.apply(
+  lambda v : normal_round(v / 100, 3)
+)
 
-  # Finally prepare the data for Excel and save
-  output.create_excel_file(annual_anomalies_by_station_dataframe, average_anomolies_of_all_stations, average_anomolies_of_all_stations_divided, GHCN_TEMPERATURES_FILE_PATH)
+# Finally prepare the data for Excel and save
+output.create_excel_file(
+  average_of_stations = average_anomolies_of_all_stations,
+  average_of_stations_divided = average_anomolies_of_all_stations_divided,
+
+  average_of_grids = avg_annual_anomalies_of_all_grids,
+  average_of_grids_divided = avg_annual_anomalies_of_all_grids_divided,
+
+  average_of_grids_by_land_ratio = avg_annual_anomalies_of_all_grids_weighed_by_land_ratio,
+  average_of_grids_by_land_ratio_divided = avg_annual_anomalies_of_all_grids_weighted_by_land_ratio_divided,
+
+  anomalies_by_grid = annual_anomalies_by_grid,
+  anomalies_by_station = annual_anomalies_by_station_dataframe,
+
+  data_source = GHCN_TEMPERATURES_FILE_PATH
+)
