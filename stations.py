@@ -50,6 +50,9 @@ def get_stations(station_file_name, country_codes_file_name):
   elif VERSION == "v4":
     colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
     dtypes['country_code'] = "object"
+  elif VERSION == "daily":
+    colspecs = [(0,2), (0,12), (12,20), (21,30), (31,37), (41,71)]
+    dtypes['country_code'] = "object"
 
   # Read the station file, and parse it into a usable table
   stations = pd.read_fwf(

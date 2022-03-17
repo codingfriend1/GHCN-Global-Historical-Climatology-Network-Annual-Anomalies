@@ -15,14 +15,15 @@ import stations
 import temperatures
 import anomaly
 import output
+import download_daily
 
-# Important File URLs
-# STATION_URL = os.path.join(DIRECTORY, FOLDER, STATION_FILE_NAME)
-# COUNTRIES_URL = os.path.join(DIRECTORY, COUNTRIES_FILE_NAME)
-# GHCNM_DAT_URL = os.path.join(DIRECTORY, FOLDER, DATA_FILE_NAME)
+STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = ("", "", "")
 
 # Check if files exist and if not, download them
-STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download.download_GHCNm_data()
+if VERSION == 'daily':
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download_daily.download_GHCNm_data()
+else:
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download.download_GHCNm_data()
 
 # Show the Developer the settings they've chosen
 output.print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
