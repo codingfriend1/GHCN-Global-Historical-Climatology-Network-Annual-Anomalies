@@ -23,7 +23,7 @@ COUNTRY_CODES_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countr
 COUNTRY_CODES_FILE_NAME = 'ghcnd-countries.txt'
 STATIONS_METADATA_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
 STATIONS_FILE_NAME = 'ghcnd-stations.txt'
-REJEX_TEMPERATURE_FILE_NAME = 'subsample.dat'
+REJEX_TEMPERATURE_FILE_NAME = 'ghcnd.tavg*'
 
 # https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt
 def get_version():
