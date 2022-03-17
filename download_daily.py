@@ -24,7 +24,6 @@ COUNTRY_CODES_FILE_NAME = 'ghcnd-countries.txt'
 STATIONS_METADATA_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
 STATIONS_FILE_NAME = 'ghcnd-stations.txt'
 REJEX_TEMPERATURE_FILE_NAME = 'ghcnd.tavg*.dat'
-
 # https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt
 def get_version():
 
@@ -89,7 +88,9 @@ def get_daily_data():
 
   return daily_data_folder[0]
 
-def download_GHCNm_data():
+def download_GHCN_data():
+
+  REJEX_TEMPERATURE_FILE_NAME = 'ghcnd.tavg*.dat' if VERSION == 'daily' else 'subsample.dat'
 
   '''
     Download Station Metadata for Daily Files

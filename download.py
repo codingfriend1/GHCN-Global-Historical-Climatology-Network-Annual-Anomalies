@@ -48,7 +48,7 @@ def get_local_country_file():
 
   return COUNTRIES_FILE_PATH
 
-def download_GHCNm_data():
+def download_GHCN_data():
 
   # Validate VERSION and QUALITY_CONTROL_DATASET
   if VERSION == 'v4' and not QUALITY_CONTROL_DATASET in ['qcu', 'qce', 'qcf']:

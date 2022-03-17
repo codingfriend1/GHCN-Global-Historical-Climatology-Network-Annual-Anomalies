@@ -20,10 +20,10 @@ import download_daily
 STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = ("", "", "")
 
 # Check if files exist and if not, download them
-if VERSION == 'daily':
-  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download_daily.download_GHCNm_data()
+if VERSION in ['daily', 'test']:
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download_daily.download_GHCN_data()
 else:
-  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download.download_GHCNm_data()
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download.download_GHCN_data()
 
 # Show the Developer the settings they've chosen
 output.print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
@@ -120,4 +120,4 @@ else:
   average_anomolies_of_all_stations_divided = average_anomolies_of_all_stations.apply(lambda v : normal_round(v / 100, 3))
 
   # Finally prepare the data for Excel and save
-  output.create_excel_file(annual_anomalies_by_station_dataframe, average_anomolies_of_all_stations, average_anomolies_of_all_stations_divided)
+  output.create_excel_file(annual_anomalies_by_station_dataframe, average_anomolies_of_all_stations, average_anomolies_of_all_stations_divided, GHCN_TEMPERATURES_FILE_PATH)
