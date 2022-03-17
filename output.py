@@ -33,7 +33,7 @@ def get_file_name_from_path(FILE_PATH):
 
 def compose_station_console_output(station_iteration, total_stations, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox):
 
-  which_station = f"Station {station_iteration} of {'{:,}'.format(total_stations)}"
+  which_station = f"Station {'{:,}'.format(station_iteration)} of {'{:,}'.format(total_stations)}"
 
   anomaly_trends = f"Anomaly Trend: {anomaly_visual} ({'{0:.3f}'.format(anomaly_trend)})\t Absolute Trend: {absolute_visual} ({'{0:.3f}'.format(absolute_trend)})"
 
