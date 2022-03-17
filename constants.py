@@ -28,7 +28,7 @@ PURGE_FLAGS = False
 ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 
 # Whether to create a columns for each station's annual anomalies in the final Excel sheet. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amounts. When set to False, annual anomaly columns are printed for each grid quadrant instead.
-PRINT_STATION_ANOMALIES = True
+PRINT_STATION_ANOMALIES = False
 
 # The range to consider when calculating trends for console output, does not effect excel results
 ABSOLUTE_START_YEAR = 1901 # Inclusive
