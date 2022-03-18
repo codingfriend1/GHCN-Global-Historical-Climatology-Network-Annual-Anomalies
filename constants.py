@@ -7,7 +7,7 @@ import datetime
 import math
 
 # Which version of GHCNm to work with
-VERSION = 'daily' #v3, v4
+VERSION = 'v3' #v3, v4
 
 # Which Quality Controlled dataset to work with, adjusted or unadjusted
 QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
@@ -33,6 +33,9 @@ PRINT_STATION_ANOMALIES = False
 # The range to consider when calculating trends for console output, does not effect excel results
 ABSOLUTE_START_YEAR = 1901 # Inclusive
 ABSOLUTE_END_YEAR = 2000 # Non-inclusive
+
+# Only use Rural stations in v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
+ONLY_RURAL = True
 
 # 
 # Calculated values

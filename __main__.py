@@ -49,6 +49,14 @@ annual_anomalies_by_station = []
 # For each station file
 for station_id, temperature_data_for_station in TEMPERATURES:
 
+  # Get the station's rural class
+  if ONLY_RURAL and VERSION == 'v3':
+
+    is_rural = stations.is_station_rural(station_id, STATIONS)
+
+    if not is_rural:
+      continue
+
   # Build an array based on the Year Range constants and include the matching line from the file on each year if its data evaluates as acceptable based on its flags
   temperatures_by_month = temperatures.fit_permitted_data_to_range(temperature_data_for_station)
 

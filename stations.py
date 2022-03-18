@@ -10,6 +10,7 @@ from download import LAND_MASK_FILE_NAME
 
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
+https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
 '''
 
 country_code_df = False
@@ -46,7 +47,9 @@ def get_stations(station_file_name, country_codes_file_name):
   colspecs = []
 
   if VERSION == "v3":
-    colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68)]
+    names = ['country_code','station_id', 'latitude','longitude','elevation','name', 'popcls', 'popcss']
+
+    colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68), (73, 74), (106,107)]
     dtypes['country_code'] = "int64"
   elif VERSION == "v4":
     colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
@@ -188,3 +191,29 @@ def get_station_gridbox(station_id, stations):
     return False
 
   return station_row[0]
+
+def is_station_rural(station_id, stations):
+
+  station_row = stations.loc[[station_id]]
+
+  if not len(station_row):
+    return False
+
+  '''
+    POPCLS: population class 
+      (U=Urban (>50,000 persons); 
+      (S=Suburban (>=10,000 and <= 50,000 persons);
+      (R=Rural (<10,000 persons)
+      City and town boundaries are determined from location of station
+      on Operational Navigation Charts with a scale of 1 to 1,000,000.
+      For cities > 100,000 persons, population data were provided by
+      the United Nations Demographic Yearbook. For smaller cities and
+      towns several atlases were uses to determine population.
+
+    POPCSS: population class as determined by Satellite night lights 
+     (C=Urban, B=Suburban, A=Rural)
+  '''
+  popcls = station_row['popcls'][0]
+  popcss = station_row['popcss'][0]
+
+  return popcls == 'R' and popcss == 'A'
