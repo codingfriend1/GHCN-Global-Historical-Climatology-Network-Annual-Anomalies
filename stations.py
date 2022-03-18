@@ -1,12 +1,17 @@
 '''
   Author: Jon Paul Miles
   Date Created: March 11, 2022
+
+  Data sources:
+
+    https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt
 '''
 
 from constants import *
 import pandas as pd
 import numpy as np
-from download import LAND_MASK_FILE_NAME
+import os
+import download
 
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
@@ -14,6 +19,7 @@ https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/
 '''
+USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
 
 country_code_df = False
 
@@ -28,7 +34,48 @@ GRID_SIZE = 5
 
 def read_land_mask():
   global land_mask
-  land_mask = pd.read_stata(LAND_MASK_FILE_NAME)
+  land_mask = pd.read_stata(download.LAND_MASK_FILE_NAME)
+
+def get_ushcn_stations():
+
+  ushcn_station_metadata_file_url = 'ushcn-v2.5-stations.txt'
+
+  print(f"Checking if {ushcn_station_metadata_file_url} exists...")
+
+  # If the file does not exist, download it
+  if not os.path.exists(ushcn_station_metadata_file_url):
+
+    print(f"USHCN Station Metadata does not exist. Downloading from: {USHCN_STATIONS_WEB_URL}\n")
+
+    download.download_from_url(USHCN_STATIONS_WEB_URL, ushcn_station_metadata_file_url)
+
+  else:
+    print("USHCN station metadata file was found. No need to download.\n")
+
+  dtypes = {
+    'station_id': np.object,
+  }
+
+  # Name our columns
+  names = ['station_id']
+
+  colspecs = [(0,12)]
+
+  ushcn_stations = pd.read_fwf(
+    ushcn_station_metadata_file_url, 
+    colspecs=colspecs, 
+    names=names, 
+    dtype=dtypes, 
+    header=None, 
+    encoding='utf-8', 
+  )
+
+  if VERSION == "v3":
+    ushcn_stations['station_id'] = ushcn_stations['station_id'].str.replace("USH", '425').astype(str)
+
+  ushcn_stations = ushcn_stations.set_index('station_id')
+
+  return ushcn_stations
 
 # Read the station file, parse it into a usable table, and join relevant information
 def get_stations(station_file_name, country_codes_file_name):
@@ -111,8 +158,30 @@ def get_stations(station_file_name, country_codes_file_name):
       (gridded_stations_and_country_name['popcss'] == 'C')
     ]
 
+  # Limit data to only USHCN Data
+  if ONLY_USHCN:
+
+    ushcn_stations = get_ushcn_stations()
+
+    gridded_stations_and_country_name = limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations)
+
   # Return our parsed and joined table
   return gridded_stations_and_country_name
+
+def limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations):
+
+  keys = list(ushcn_stations.index.values)
+
+  subset_of_gridded_stations_and_country_name = gridded_stations_and_country_name.loc[
+    gridded_stations_and_country_name.index.intersection(keys)
+  ]
+
+  return subset_of_gridded_stations_and_country_name
+
+
+
+  # gridded_stations_and_country_name.loc[gridded_stations_and_country_name['station_id'] in ushcn_stations['station_id']]
+
 
 # For add the associated country name to the station metadata
 def merge_with_country_names(stations, country_codes_file_name):

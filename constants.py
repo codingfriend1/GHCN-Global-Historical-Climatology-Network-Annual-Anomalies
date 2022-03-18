@@ -16,7 +16,7 @@ QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
 YEAR_RANGE_START = 1851
 
 # Leave blank if you wish to use a rolling average
-REFERENCE_START_YEAR = 1961
+REFERENCE_START_YEAR = 1951
 
 # Number of years to consider in the reference average
 REFERENCE_RANGE = 30
@@ -25,7 +25,7 @@ REFERENCE_RANGE = 30
 PURGE_FLAGS = False
 
 # The acceptable amount of data available (subtracting missing data) before an anomaly calculation can be made (in decimal form)
-ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
+ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.0
 
 # Whether to create a columns for each station's annual anomalies in the final Excel sheet. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amounts. When set to False, annual anomaly columns are printed for each grid quadrant instead.
 PRINT_STATION_ANOMALIES = False
@@ -40,6 +40,8 @@ ONLY_URBAN = False
 
 # How many months does each year of data need to include to accept that row of data
 MONTHS_REQUIRED_EACH_YEAR = 12
+
+ONLY_USHCN = True
 
 # 
 # Calculated values

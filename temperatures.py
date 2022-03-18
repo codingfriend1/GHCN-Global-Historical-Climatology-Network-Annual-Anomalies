@@ -35,6 +35,40 @@ def get_permitted_reading(month_grouping):
   QCFLAG = month_grouping[2]
   DSFLAG = month_grouping[3]
 
+  '''
+    https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
+
+    DSFLAG: data source flag for monthly value, 21 possibilities:
+
+      C = Monthly Climatic Data of the World (MCDW) QC completed 
+          but value is not yet published
+
+      D = Calculated monthly value from daily data contained within the
+          Global Historical Climatology Network Daily (GHCND) dataset.
+
+      G = GHCNM v2 station, that was not a v2 station that had multiple
+          time series (for the same element).
+
+      J = Colonial Era Archive Data
+
+      K = received by the UK Met Office
+
+      M = Final (Published) Monthly Climatic Data of the World 
+         (MCDW)
+
+      N = Netherlands, KNMI (Royal Netherlans Meteorological 
+          Institute)
+
+      P = CLIMAT (Data transmitted over the GTS, not yet fully 
+          processed for the MCDW)
+
+      U = USHCN v2
+
+      W = World Weather Records (WWR), 9th series 1991 through 2000 
+
+      Z = Datzilla (Manual/Expert Assessment)
+  '''
+
   # If the Developer has chosen to PURGE_Flags, we set as missing as readings that have an Estimated or Quality Control Flag
   return VALUE if not PURGE_FLAGS or (not DMFLAG == 'E' and QCFLAG == ' ') else math.nan
 
@@ -222,8 +256,8 @@ def get_temperatures_by_station(url, STATIONS):
       # Since we are now in a new station, reset `station_parsed_file_rows` so it only contains data for the current station iteration
       station_parsed_file_rows = []
 
-    # If we are using only rural stations in v3:
-    if (ONLY_RURAL or ONLY_URBAN) and VERSION == 'v3':
+    # If we are wishing to limit our results to a subset of stations
+    if (ONLY_RURAL or ONLY_URBAN) and VERSION == 'v3' or ONLY_USHCN:
 
       # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)      
       if not STATION_ID in STATIONS.index:
@@ -234,13 +268,15 @@ def get_temperatures_by_station(url, STATIONS):
     # Split the row string into usable data columns. Monthly sets of temperatures and flags will be represented as an array ([VALUE1, DMFLAG1, QCFLAG1, DSFLAG1]) each taking up one column.
     parsed_row = parse_temperature_row(unparsed_row_string[0])
 
-    # Check that the rows meets the Developer's minimum amount of monthly data for the year
-    row_with_12_months = parsed_row if has_required_number_of_months(parsed_row) else False
+    if parsed_row:
 
-    if row_with_12_months:
+      # Check that the rows meets the Developer's minimum amount of monthly data for the year
+      row_with_12_months = parsed_row if has_required_number_of_months(parsed_row) else False
 
-      # Add the parsed row to the array of the file's parsed rows
-      station_parsed_file_rows.append(row_with_12_months)
+      if row_with_12_months:
+
+        # Add the parsed row to the array of the file's parsed rows
+        station_parsed_file_rows.append(row_with_12_months)
         
 
   # Repeat the baseline check one final time for the last station iteration
