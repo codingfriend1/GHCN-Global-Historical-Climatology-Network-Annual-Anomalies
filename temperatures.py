@@ -141,78 +141,81 @@ def parse_temperature_row(unparsed_row_string):
 
   return parsed_row
 
-temporary_station_id = False
+def has_required_number_of_months(parsed_row):
 
-def require_all_12_months(parsed_row):
-
-  has_12_months = True
+  count_available_months = 0
 
   for month_group in parsed_row[3:16]:
-    if math.isnan(month_group[0]):
-      has_12_months = False
 
-  return has_12_months
+    if not math.isnan(month_group[0]):
 
-# station_parsed_file_rows = []
+      count_available_months += 1
 
-# def check_if_new_station(station_id):
+  return count_available_months >= MONTHS_REQUIRED_EACH_YEAR
 
-#   global temporary_station_id
+temporary_station_id = False
 
-#   if temporary_station_id != station_id:
-#     temporary_station_id = station_id
-#     return True
-#   else:
-#     return False
+def did_station_change(station_id):
 
-# def check_minimum_data(station_parsed_file_rows):
+  global temporary_station_id
 
-#   REFERENCE_END_YEAR = REFERENCE_START_YEAR + REFERENCE_RANGE
+  if temporary_station_id != station_id:
+    temporary_station_id = station_id
+    return True
+  else:
+    return False
 
-#   available_rows_in_baseline_years = 0
-#   for parsed_row in station_parsed_file_rows:
-#     if parsed_row[2] >= REFERENCE_START_YEAR  and parsed_row[2] < REFERENCE_END_YEAR:
-#       available_rows_in_baseline_years += 1
+def contains_enough_annual_data(station_parsed_file_rows):
 
-#   minimum_years_needed = math.ceil(REFERENCE_RANGE * ACCEPTABLE_AVAILABLE_DATA_PERCENT)
+  REFERENCE_END_YEAR = REFERENCE_START_YEAR + REFERENCE_RANGE
 
-#   return available_rows_in_baseline_years > minimum_years_needed
+  available_rows_in_baseline_years = 0
+  for parsed_row in station_parsed_file_rows:
+    if parsed_row[2] >= REFERENCE_START_YEAR  and parsed_row[2] < REFERENCE_END_YEAR:
+      available_rows_in_baseline_years += 1
+
+  minimum_years_needed = math.ceil(REFERENCE_RANGE * ACCEPTABLE_AVAILABLE_DATA_PERCENT)
+
+  return available_rows_in_baseline_years >= minimum_years_needed
 
 '''
 Read the Temperature Data File and parse it into a usable table, grouping the results by Station ID so we can iterate over each station. Provide the url/path to the .dat file
 '''
 def get_temperatures_by_station(url, STATIONS):
 
-  # global station_parsed_file_rows
-
   # Read the station's temperature file, each row will be a plain string and will not be parsed or separated already into a dataframe. Although this is inconvenient to manually parse each row before converting into a dataframe, it massively improves performance.
   station_temperature_data_file = pd.read_csv(url, sep="\t", header=None, low_memory=False)
 
+  # Will contain an array for each row for just the current station
+  station_parsed_file_rows = []
+
   # Will contain an array for each row
-  parsed_file_rows = []
+  parsed_rows_for_all_stations = []
 
   # For each row in the station's temperature data
   for unparsed_row_string in station_temperature_data_file.values:
 
     STATION_ID = str(unparsed_row_string[0][0:11])
 
-    # is_new_station = check_if_new_station(STATION_ID)
+    # `station_temperature_data_file` is one file that contains data for all stations, so we run this check to see help divide the data by station
+    is_new_station = did_station_change(STATION_ID)
 
-    # if is_new_station and len(station_parsed_file_rows):
+    # If the station has changed and we have data for the previous station
+    if is_new_station and len(station_parsed_file_rows):
 
-    #   meets_minimum_data_requirements_for_baseline = check_minimum_data(station_parsed_file_rows)
+      # Check if the previous station's data meets the minimum requirements of available annual data `ACCEPTABLE_AVAILABLE_DATA_PERCENT * REFERENCE_RANGE`
+      if contains_enough_annual_data(station_parsed_file_rows):
 
-    #   if meets_minimum_data_requirements_for_baseline:
-    #     parsed_file_rows.extend(station_parsed_file_rows)
+        # If so, add all the data for the previous station to the data for all stations
+        parsed_rows_for_all_stations.extend(station_parsed_file_rows)
 
-    #   station_parsed_file_rows = []
+      # Since we are now in a new station, reset `station_parsed_file_rows` so it only contains data for the current station iteration
+      station_parsed_file_rows = []
 
     # If we are using only rural stations in v3:
     if (ONLY_RURAL or ONLY_URBAN) and VERSION == 'v3':
 
-      # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)
-      STATION_ID = str(unparsed_row_string[0][0:11])
-
+      # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)      
       if not STATION_ID in STATIONS.index:
 
         # If the associated Station data is not found, skip this station
@@ -221,25 +224,24 @@ def get_temperatures_by_station(url, STATIONS):
     # Split the row string into usable data columns. Monthly sets of temperatures and flags will be represented as an array ([VALUE1, DMFLAG1, QCFLAG1, DSFLAG1]) each taking up one column.
     parsed_row = parse_temperature_row(unparsed_row_string[0])
 
-    if parsed_row:
+    # Check that the rows meets the Developer's minimum amount of monthly data for the year
+    row_with_12_months = parsed_row if has_required_number_of_months(parsed_row) else False
 
-      # has_12_months = require_all_12_months(parsed_row)
-
-      # if has_12_months:
+    if row_with_12_months:
 
       # Add the parsed row to the array of the file's parsed rows
-      parsed_file_rows.append(parsed_row)
+      station_parsed_file_rows.append(row_with_12_months)
+        
 
-  # Repeat the baseline check one final time for the last iteration
-  # meets_minimum_data_requirements_for_baseline = check_minimum_data(station_parsed_file_rows)
+  # Repeat the baseline check one final time for the last station iteration
+  if contains_enough_annual_data(station_parsed_file_rows):
 
-  # if meets_minimum_data_requirements_for_baseline:
-  #   parsed_file_rows.extend(station_parsed_file_rows)
+    parsed_rows_for_all_stations.extend(station_parsed_file_rows)
 
-  # station_parsed_file_rows = []
+  station_parsed_file_rows = []
 
   # Convert the parsed_file_rows into a Panda's dataframe.
-  temperature_dataframe = pd.DataFrame(parsed_file_rows)
+  temperature_dataframe = pd.DataFrame(parsed_rows_for_all_stations)
 
   # Since the provided .dat file contains data for all stations, we need to manually group the data by station so we can individually iterate over each one
   STATION_ID_COLUMN = 1

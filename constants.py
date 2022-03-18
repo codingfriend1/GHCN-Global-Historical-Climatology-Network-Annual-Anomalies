@@ -35,8 +35,11 @@ ABSOLUTE_START_YEAR = 1880 # Inclusive
 ABSOLUTE_END_YEAR = 2020 # Non-inclusive
 
 # Only use Rural stations in v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
-ONLY_RURAL = True
+ONLY_RURAL = False
 ONLY_URBAN = False
+
+# How many months does each year of data need to include to accept that row of data
+MONTHS_REQUIRED_EACH_YEAR = 12
 
 # 
 # Calculated values
