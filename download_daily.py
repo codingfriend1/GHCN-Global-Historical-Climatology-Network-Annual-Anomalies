@@ -154,6 +154,10 @@ def download_GHCN_data():
 
     get_daily_data()
 
+    print(f"The daily-to-monthly data has not been compiled. Please run `python3 ./convert-daily-to-monthly-tavg.py` to build the monthly file from daily data and then run `python3 .` again.\n")
+
+    quit()
+
     matching_tavg_daily_data = glob.glob(os.path.join('.', REJEX_TEMPERATURE_FILE_NAME))
 
   else:
