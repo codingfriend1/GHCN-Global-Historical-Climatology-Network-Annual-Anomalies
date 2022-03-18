@@ -13,7 +13,7 @@ VERSION = 'v3' #v3, v4
 QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
 
 # Earliest year you want to consider in the data
-YEAR_RANGE_START = 1850
+YEAR_RANGE_START = 1851
 
 # Leave blank if you wish to use a rolling average
 REFERENCE_START_YEAR = 1961
@@ -35,8 +35,8 @@ ABSOLUTE_START_YEAR = 1880 # Inclusive
 ABSOLUTE_END_YEAR = 2020 # Non-inclusive
 
 # Only use Rural stations in v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
-ONLY_RURAL = False
-ONLY_URBAN = True
+ONLY_RURAL = True
+ONLY_URBAN = False
 
 # 
 # Calculated values

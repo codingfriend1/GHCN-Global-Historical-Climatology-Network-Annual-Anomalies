@@ -11,6 +11,8 @@ from download import LAND_MASK_FILE_NAME
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
 https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
+https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/
+https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/
 '''
 
 country_code_df = False

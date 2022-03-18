@@ -1,6 +1,23 @@
 '''
   Author: Jon Paul Miles
   Date Created: March 15, 2022
+
+  Data Sources:
+  
+  v3
+  https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qcu.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qca.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/country-codes
+  
+  v4
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcf.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt
+
+  Land / Water Ratio per Grid Quadrant
+  https://drive.google.com/file/d/1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj/view
 '''
 
 from constants import *

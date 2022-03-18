@@ -2,9 +2,15 @@
   Author: Jon Paul Miles
   Date Created: March 16, 2022
 
-  Daily station data can be retrieved from:
+  Data Sources:
+
   https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
-  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/all/
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd_all.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countries.txt
+
+  Land / Water Ratio per Grid Quadrant
+  https://drive.google.com/file/d/1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj/view
 '''
 
 import os
@@ -25,7 +31,7 @@ COUNTRY_CODES_FILE_NAME = 'ghcnd-countries.txt'
 STATIONS_METADATA_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
 STATIONS_FILE_NAME = 'ghcnd-stations.txt'
 REJEX_TEMPERATURE_FILE_NAME = 'ghcnd.tavg*.dat'
-# https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt
+
 def get_version():
 
   FILE_NAME = 'ghcnd-version.txt'
@@ -66,7 +72,7 @@ def get_daily_data():
       download.download_and_extract_from_url(WEB_URL_FOR_ALL_DAILY_DATA)
 
       print(f"\nSuccessfully downloaded:")
-      print(f"  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd_all.tar.gz")
+      print(f"  {WEB_URL_FOR_ALL_DAILY_DATA}")
 
     else:
       print(f"Found unextracted {UNEXTRACTED_DAILY_FILE}. Extracting now...\n")
