@@ -165,17 +165,27 @@ def did_station_change(station_id):
   else:
     return False
 
+# Check that the station includes enough annual data during the vital baseline reference range years
 def contains_enough_annual_data(station_parsed_file_rows):
 
+  # Calculate the end year of the baseline reference range from Developer Constants
   REFERENCE_END_YEAR = REFERENCE_START_YEAR + REFERENCE_RANGE
 
   available_rows_in_baseline_years = 0
+
+  # For each row in the station's data:
   for parsed_row in station_parsed_file_rows:
+
+    # Check if the year is within the reference range
     if parsed_row[2] >= REFERENCE_START_YEAR  and parsed_row[2] < REFERENCE_END_YEAR:
+
+      # If so, add it to the count of years within the reference range
       available_rows_in_baseline_years += 1
 
+  # Check the minimum number of years necessary within the reference range to include this station
   minimum_years_needed = math.ceil(REFERENCE_RANGE * ACCEPTABLE_AVAILABLE_DATA_PERCENT)
 
+  # If the available data is greater than or mets the minimum thresholdhold return True
   return available_rows_in_baseline_years >= minimum_years_needed
 
 '''
