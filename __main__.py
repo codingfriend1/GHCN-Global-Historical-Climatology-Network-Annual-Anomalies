@@ -49,6 +49,9 @@ annual_anomalies_by_station = []
 # For each station file
 for station_id, temperature_data_for_station in TEMPERATURES:
 
+  # Increase the station iteration for console output
+  station_iteration += 1
+
   # Get the station's rural class
   if ONLY_RURAL and VERSION == 'v3':
 
@@ -93,9 +96,6 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 
   # We wish to give the Developer a quick reference to the station's starting and ending years.
   start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
-
-  # Increase the station iteration for console output
-  station_iteration += 1
 
   # Output Progress and Trends to Console
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
