@@ -39,7 +39,7 @@ def compose_station_console_output(station_iteration, total_stations, station_id
 
   year_range = f"{start_year}-{end_year}"
 
-  print(f"{which_station} \t{station_id}\t  {anomaly_trends}\t| {year_range} | {station_gridbox}  \t\t| {station_location}")
+  print(f"{which_station} \t{station_id}\t  {anomaly_trends}\t| {year_range} | {station_gridbox}  \t| {station_location}")
 
 def update_statistics(trend, type):
 

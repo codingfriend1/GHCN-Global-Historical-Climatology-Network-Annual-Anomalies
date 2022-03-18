@@ -79,6 +79,29 @@ def get_stations(station_file_name, country_codes_file_name):
 
   read_land_mask()
 
+  if ONLY_RURAL and VERSION == 'v3':
+
+    '''
+      https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
+
+      POPCLS: population class 
+        (U=Urban (>50,000 persons); 
+        (S=Suburban (>=10,000 and <= 50,000 persons);
+        (R=Rural (<10,000 persons)
+        City and town boundaries are determined from location of station
+        on Operational Navigation Charts with a scale of 1 to 1,000,000.
+        For cities > 100,000 persons, population data were provided by
+        the United Nations Demographic Yearbook. For smaller cities and
+        towns several atlases were uses to determine population.
+
+      POPCSS: population class as determined by Satellite night lights 
+       (C=Urban, B=Suburban, A=Rural)
+    '''
+    gridded_stations_and_country_name = gridded_stations_and_country_name[
+      (gridded_stations_and_country_name['popcls'] == 'R') & 
+      (gridded_stations_and_country_name['popcss'] == 'A')
+    ]
+
   # Return our parsed and joined table
   return gridded_stations_and_country_name
 
@@ -191,29 +214,3 @@ def get_station_gridbox(station_id, stations):
     return False
 
   return station_row[0]
-
-def is_station_rural(station_id, stations):
-
-  station_row = stations.loc[[station_id]]
-
-  if not len(station_row):
-    return False
-
-  '''
-    POPCLS: population class 
-      (U=Urban (>50,000 persons); 
-      (S=Suburban (>=10,000 and <= 50,000 persons);
-      (R=Rural (<10,000 persons)
-      City and town boundaries are determined from location of station
-      on Operational Navigation Charts with a scale of 1 to 1,000,000.
-      For cities > 100,000 persons, population data were provided by
-      the United Nations Demographic Yearbook. For smaller cities and
-      towns several atlases were uses to determine population.
-
-    POPCSS: population class as determined by Satellite night lights 
-     (C=Urban, B=Suburban, A=Rural)
-  '''
-  popcls = station_row['popcls'][0]
-  popcss = station_row['popcss'][0]
-
-  return popcls == 'R' and popcss == 'A'

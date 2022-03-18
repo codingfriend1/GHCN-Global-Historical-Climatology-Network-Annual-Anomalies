@@ -35,7 +35,7 @@ output.print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
 STATIONS = stations.get_stations(STATION_FILE_PATH, COUNTRIES_FILE_PATH)
 
 # Parse GHCN-M temperature data (.dat) into a DataFrame
-TEMPERATURES = temperatures.get_temperatures_by_station(GHCN_TEMPERATURES_FILE_PATH)
+TEMPERATURES = temperatures.get_temperatures_by_station(GHCN_TEMPERATURES_FILE_PATH, STATIONS)
 
 # "TEMPERATURES" data is grouped by station, so counting its length will tell us the total number of Stations
 TOTAL_STATIONS = len(TEMPERATURES)
@@ -48,17 +48,6 @@ annual_anomalies_by_station = []
 
 # For each station file
 for station_id, temperature_data_for_station in TEMPERATURES:
-
-  # Increase the station iteration for console output
-  station_iteration += 1
-
-  # Get the station's rural class
-  if ONLY_RURAL and VERSION == 'v3':
-
-    is_rural = stations.is_station_rural(station_id, STATIONS)
-
-    if not is_rural:
-      continue
 
   # Build an array based on the Year Range constants and include the matching line from the file on each year if its data evaluates as acceptable based on its flags
   temperatures_by_month = temperatures.fit_permitted_data_to_range(temperature_data_for_station)
@@ -96,6 +85,9 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 
   # We wish to give the Developer a quick reference to the station's starting and ending years.
   start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
+
+  # Increase the station iteration for console output
+  station_iteration += 1
 
   # Output Progress and Trends to Console
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)

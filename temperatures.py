@@ -144,7 +144,7 @@ def parse_temperature_row(unparsed_row_string):
 '''
 Read the Temperature Data File and parse it into a usable table, grouping the results by Station ID so we can iterate over each station. Provide the url/path to the .dat file
 '''
-def get_temperatures_by_station(url):
+def get_temperatures_by_station(url, STATIONS):
 
   # Read the station's temperature file, each row will be a plain string and will not be parsed or separated already into a dataframe. Although this is inconvenient to manually parse each row before converting into a dataframe, it massively improves performance.
   station_temperature_data_file = pd.read_csv(url, sep="\t", header=None, low_memory=False)
@@ -154,6 +154,17 @@ def get_temperatures_by_station(url):
 
   # For each row in the station's temperature data
   for unparsed_row_string in station_temperature_data_file.values:
+
+    # If we are using only rural stations in v3:
+    if ONLY_RURAL and VERSION == 'v3':
+
+      # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)
+      STATION_ID = str(unparsed_row_string[0][0:11])
+
+      if not STATION_ID in STATIONS.index:
+
+        # If the associated Station data is not found, skip this station
+        continue
 
     # Split the row string into usable data columns. Monthly sets of temperatures and flags will be represented as an array ([VALUE1, DMFLAG1, QCFLAG1, DSFLAG1]) each taking up one column.
     parsed_row = parse_temperature_row(unparsed_row_string[0])
