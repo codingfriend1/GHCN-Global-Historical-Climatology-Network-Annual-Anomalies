@@ -64,6 +64,7 @@ def download_GHCN_data():
     quit()
 
   VERSION_FOLDER = glob.glob(f"ghcnm.{VERSION}*")
+  VERSION_FOLDER = [file for file in VERSION_FOLDER if not file.endswith('.xlsx')]
   COUNTRIES_FILE_PATH = ""
 
   print(f"\nChecking if folder 'ghcnm.{VERSION}*' exists within this directory...\n")
@@ -89,6 +90,7 @@ def download_GHCN_data():
     download_from_url(COUNTRY_CODES_URL, COUNTRY_CODES_FILE_NAME)
 
     VERSION_FOLDER = glob.glob(f"ghcnm.{VERSION}*")[0]
+
     EXTRACTED_FILES = glob.glob(f"{VERSION_FOLDER}/*")
 
     print(f"\nSuccessfully downloaded:")
