@@ -79,27 +79,34 @@ def get_stations(station_file_name, country_codes_file_name):
 
   read_land_mask()
 
+  '''
+    https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
+
+    POPCLS: population class 
+      (U=Urban (>50,000 persons); 
+      (S=Suburban (>=10,000 and <= 50,000 persons);
+      (R=Rural (<10,000 persons)
+      City and town boundaries are determined from location of station
+      on Operational Navigation Charts with a scale of 1 to 1,000,000.
+      For cities > 100,000 persons, population data were provided by
+      the United Nations Demographic Yearbook. For smaller cities and
+      towns several atlases were uses to determine population.
+
+    POPCSS: population class as determined by Satellite night lights 
+     (C=Urban, B=Suburban, A=Rural)
+  '''
   if ONLY_RURAL and VERSION == 'v3':
 
-    '''
-      https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
-
-      POPCLS: population class 
-        (U=Urban (>50,000 persons); 
-        (S=Suburban (>=10,000 and <= 50,000 persons);
-        (R=Rural (<10,000 persons)
-        City and town boundaries are determined from location of station
-        on Operational Navigation Charts with a scale of 1 to 1,000,000.
-        For cities > 100,000 persons, population data were provided by
-        the United Nations Demographic Yearbook. For smaller cities and
-        towns several atlases were uses to determine population.
-
-      POPCSS: population class as determined by Satellite night lights 
-       (C=Urban, B=Suburban, A=Rural)
-    '''
     gridded_stations_and_country_name = gridded_stations_and_country_name[
       (gridded_stations_and_country_name['popcls'] == 'R') & 
       (gridded_stations_and_country_name['popcss'] == 'A')
+    ]
+
+  elif ONLY_URBAN and VERSION == 'v3':
+
+    gridded_stations_and_country_name = gridded_stations_and_country_name[
+      (gridded_stations_and_country_name['popcls'] == 'U') & 
+      (gridded_stations_and_country_name['popcss'] == 'C')
     ]
 
   # Return our parsed and joined table

@@ -156,7 +156,7 @@ def get_temperatures_by_station(url, STATIONS):
   for unparsed_row_string in station_temperature_data_file.values:
 
     # If we are using only rural stations in v3:
-    if ONLY_RURAL and VERSION == 'v3':
+    if (ONLY_RURAL or ONLY_URBAN) and VERSION == 'v3':
 
       # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)
       STATION_ID = str(unparsed_row_string[0][0:11])

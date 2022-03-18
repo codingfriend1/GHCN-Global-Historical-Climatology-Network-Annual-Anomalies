@@ -31,11 +31,12 @@ ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 PRINT_STATION_ANOMALIES = False
 
 # The range to consider when calculating trends for console output, does not effect excel results
-ABSOLUTE_START_YEAR = 1901 # Inclusive
-ABSOLUTE_END_YEAR = 2000 # Non-inclusive
+ABSOLUTE_START_YEAR = 1880 # Inclusive
+ABSOLUTE_END_YEAR = 2020 # Non-inclusive
 
 # Only use Rural stations in v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
 ONLY_RURAL = False
+ONLY_URBAN = True
 
 # 
 # Calculated values

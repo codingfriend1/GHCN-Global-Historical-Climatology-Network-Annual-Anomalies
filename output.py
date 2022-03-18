@@ -95,6 +95,9 @@ def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
   if ONLY_RURAL:
     rural_text = "-only-rural"
 
+  if ONLY_URBAN:
+    rural_text = "-only-urban"
+
   OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{rural_text}.xlsx"
 
   return OUTPUT_FILE_NAME
