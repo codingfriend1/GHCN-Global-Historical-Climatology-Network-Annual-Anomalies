@@ -204,8 +204,8 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Anomaly reference average range", f"{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR + REFERENCE_RANGE - 1}"],
     ["Trend range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}"],
     ["Purging flagged data", str(PURGE_FLAGS)],
-    ["Rural Only", str(ONLY_RURAL)],
-    ["Urban Only", str(ONLY_URBAN)]
+    ["Rural only", str(ONLY_RURAL)],
+    ["Urban only", str(ONLY_URBAN)]
   ])
 
   my_table.set_deco(Texttable.HEADER | Texttable.BORDER)

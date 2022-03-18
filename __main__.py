@@ -55,6 +55,13 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   # To convert absolute temperatures to anomalies, you need to have a baseline to compare temperature changes to so you can calculate the anomalies. We will create a separate baseline for each month of the year, averaging the reference years according to the Developer Settings in "constants.py"
   baseline_by_month = anomaly.average_reference_years_by_month(temperatures_by_month)
 
+
+  # Here we require all 12 months to be visible
+  # is_missing_any_baselines_by_month = baseline_by_month.isnull().any()
+
+  # if is_missing_any_baselines_by_month:
+  #   continue
+
   # Calculate anomalies for each year on a month class by month class basis (Jan to Jan, Feb to Feb, ...) relative to the baselines we calculated earlier (for each month) and return an array of month class arrays
   anomalies_by_month = anomaly.calculate_anomalies_by_month_class(temperatures_by_month, baseline_by_month)
 
