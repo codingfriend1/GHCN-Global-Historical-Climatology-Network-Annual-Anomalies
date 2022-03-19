@@ -257,7 +257,7 @@ def get_temperatures_by_station(url, STATIONS):
       station_parsed_file_rows = []
 
     # If we are wishing to limit our results to a subset of stations
-    if (SURROUNDING_CLASS) and VERSION == 'v3' or (ONLY_USHCN or USE_COUNTRY):
+    if (SURROUNDING_CLASS) and VERSION == 'v3' or (ONLY_USHCN or USE_COUNTRY or IN_COUNTRY):
 
       # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)      
       if not STATION_ID in STATIONS.index:

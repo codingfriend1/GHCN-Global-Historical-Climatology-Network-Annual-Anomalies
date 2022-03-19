@@ -103,7 +103,11 @@ def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
   if USE_COUNTRY:
     only_country = f"-only-{USE_COUNTRY.lower()}"
 
-  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{rural_text}{sub_network}{only_country}.xlsx"
+  in_country = ""
+  if IN_COUNTRY:
+    in_country = f"-in-({', '.join(IN_COUNTRY)})"
+
+  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{rural_text}{sub_network}{only_country}{in_country}.xlsx"
 
   return OUTPUT_FILE_NAME
 
@@ -212,6 +216,7 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Environment class", str(SURROUNDING_CLASS)],
     ["USHCN only", str(ONLY_USHCN)],
     ["Limit to country", str(USE_COUNTRY)],
+    ["Countries used", str(", ".join(IN_COUNTRY))],
   ])
 
   my_table.set_deco(Texttable.HEADER | Texttable.BORDER)

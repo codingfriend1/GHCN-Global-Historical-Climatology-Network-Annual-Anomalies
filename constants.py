@@ -47,6 +47,9 @@ ONLY_USHCN = False
 # Include country name, ex: China, United States of America, Artic, Ireland (case-insensitive)
 USE_COUNTRY = False
 
+# Include a range of countries
+IN_COUNTRY = ['China', 'United States of America', 'Ireland', 'Artic']
+
 # 
 # Calculated values
 # 
@@ -59,6 +62,8 @@ YEAR_AS_OF_TODAY = int(TODAY.strftime("%Y"))
 
 # The last year to consider
 YEAR_RANGE_END = YEAR_AS_OF_TODAY + 1
+
+SURROUNDING_CLASS = SURROUNDING_CLASS.lower()
 
 
 # Methods

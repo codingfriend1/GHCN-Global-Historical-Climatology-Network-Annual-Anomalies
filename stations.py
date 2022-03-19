@@ -14,7 +14,7 @@ country_code_df = False
 land_mask = {}
 
 # Arctic Circle, i.e., 66° 33′N.
-ARTIC_CIRCLE_LATITUDE = 66.5
+ARTIC_CIRCLE_LATITUDE = 60
 
 '''
 When forming a grid of latitude and longitude boxes around the earth, this is represents the size of each grid box in degrees
@@ -195,7 +195,24 @@ def get_stations(station_file_name, country_codes_file_name):
         gridded_stations_and_country_name['latitude'] >= ARTIC_CIRCLE_LATITUDE
       ]
 
-      print(gridded_stations_and_country_name)
+  if IN_COUNTRY and VERSION == 'v3':
+
+    UPPERCASE_COUNTRIES = list(map(str.upper, IN_COUNTRY))
+
+    if 'ARTIC' in UPPERCASE_COUNTRIES:
+
+      gridded_stations_and_country_name = gridded_stations_and_country_name.loc[
+        (gridded_stations_and_country_name['country'].isin(UPPERCASE_COUNTRIES)) | 
+        (gridded_stations_and_country_name['latitude'] >= ARTIC_CIRCLE_LATITUDE)
+      ]
+      
+    else:
+
+      gridded_stations_and_country_name = gridded_stations_and_country_name.loc[
+        gridded_stations_and_country_name['country'].isin(UPPERCASE_COUNTRIES)
+      ]
+
+  print(gridded_stations_and_country_name)
 
   # Return our parsed and joined table
   return gridded_stations_and_country_name
