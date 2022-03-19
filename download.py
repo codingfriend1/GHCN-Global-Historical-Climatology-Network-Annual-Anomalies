@@ -16,6 +16,10 @@
   https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz
   https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt
 
+  USHCN
+  https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/readme.txt
+  https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt
+
   Land / Water Ratio per Grid Quadrant
   https://drive.google.com/file/d/1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj/view
 '''
@@ -31,6 +35,9 @@ from google_drive_downloader import GoogleDriveDownloader as gdd
 EXTRACTED_FILES = []
 COUNTRY_CODES_FILE_NAME = 'country-codes' if VERSION == 'v3' else 'ghcnm-countries.txt'
 LAND_MASK_FILE_NAME = "./landmask.dta"
+USHCN_STATION_METADATA_FILE_URL = 'ushcn-v2.5-stations.txt'
+USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
+
 
 def download_landmask_data():
   '''
@@ -48,6 +55,23 @@ def download_and_extract_from_url(url):
 
 def download_from_url(url, file_name):
   urllib.request.urlretrieve(url, file_name)
+
+def download_ushcn_station_metadata():
+
+  print(f"Checking if {USHCN_STATION_METADATA_FILE_URL} exists...")
+
+  # If the file does not exist, download it
+  if not os.path.exists(USHCN_STATION_METADATA_FILE_URL):
+
+    print(f"USHCN Station Metadata does not exist. Downloading from: {USHCN_STATIONS_WEB_URL}\n")
+
+    download_from_url(USHCN_STATIONS_WEB_URL, USHCN_STATION_METADATA_FILE_URL)
+
+  else:
+
+    print("USHCN station metadata file was found. No need to download.\n")
+
+  return USHCN_STATION_METADATA_FILE_URL
 
 def get_local_country_file():
 

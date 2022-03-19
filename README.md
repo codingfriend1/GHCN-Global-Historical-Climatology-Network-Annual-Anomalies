@@ -36,7 +36,7 @@ These are the steps used to recreate the results.
 
 7. Average the station anomalies within each grid quadrant by year. An average for a grid quadrant is calculated if it has at least one station.
 
-8. Because the surface area of each grid quadrant decreases with latitude according to the cosine of latitude, we average all grid quadrant anomalies (that have a station) by year weighing each grid by the cosine of the mid-latitude for that grid.
+8. Because the surface area of each grid quadrant decreases with latitude according to the cosine of latitude, we average all grid quadrant anomalies (that have a station) by year weighing each grid by the cosine of the mid-latitude for that grid (`grid_weight = np.cos( mid_latitude * (np.pi / 180 ) )`).
 
 9. In a separate list, calculate the weight of each grid quadrant by multiplying the cosine weighting of each grid by the percent of land in each grid quadrant.
 

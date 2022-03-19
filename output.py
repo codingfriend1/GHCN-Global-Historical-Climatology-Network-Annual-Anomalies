@@ -92,17 +92,18 @@ def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
   TEMPERATURE_FILE = get_file_name_from_path(GHCN_TEMPERATURES_FILE_PATH)
 
   rural_text = ""
-  if ONLY_RURAL:
-    rural_text = "-only-rural"
-
-  if ONLY_URBAN:
-    rural_text = "-only-urban"
+  if SURROUNDING_CLASS:
+    rural_text = f"-only-{SURROUNDING_CLASS}"
 
   sub_network = ""
   if ONLY_USHCN:
     sub_network = "-only-USHCN"
 
-  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{rural_text}{sub_network}.xlsx"
+  only_country = ""
+  if USE_COUNTRY:
+    only_country = f"-only-{USE_COUNTRY.lower()}"
+
+  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}-{acceptable_percent}-{'some-rejected' if PURGE_FLAGS else 'all'}{rural_text}{sub_network}{only_country}.xlsx"
 
   return OUTPUT_FILE_NAME
 
@@ -208,9 +209,9 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Anomaly reference average range", f"{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR + REFERENCE_RANGE - 1}"],
     ["Trend range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}"],
     ["Purging flagged data", str(PURGE_FLAGS)],
-    ["Rural only", str(ONLY_RURAL)],
-    ["Urban only", str(ONLY_URBAN)],
-    ["USHCN only", str(ONLY_USHCN)]
+    ["Environment class", str(SURROUNDING_CLASS)],
+    ["USHCN only", str(ONLY_USHCN)],
+    ["Limit to country", str(USE_COUNTRY)],
   ])
 
   my_table.set_deco(Texttable.HEADER | Texttable.BORDER)

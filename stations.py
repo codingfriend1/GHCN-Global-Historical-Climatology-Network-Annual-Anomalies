@@ -1,10 +1,6 @@
 '''
   Author: Jon Paul Miles
   Date Created: March 11, 2022
-
-  Data sources:
-
-    https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt
 '''
 
 from constants import *
@@ -13,17 +9,12 @@ import numpy as np
 import os
 import download
 
-'''
-https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
-https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
-https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/
-https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/
-'''
-USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
-
 country_code_df = False
 
 land_mask = {}
+
+# Arctic Circle, i.e., 66° 33′N.
+ARTIC_CIRCLE_LATITUDE = 66.5
 
 '''
 When forming a grid of latitude and longitude boxes around the earth, this is represents the size of each grid box in degrees
@@ -38,19 +29,7 @@ def read_land_mask():
 
 def get_ushcn_stations():
 
-  ushcn_station_metadata_file_url = 'ushcn-v2.5-stations.txt'
-
-  print(f"Checking if {ushcn_station_metadata_file_url} exists...")
-
-  # If the file does not exist, download it
-  if not os.path.exists(ushcn_station_metadata_file_url):
-
-    print(f"USHCN Station Metadata does not exist. Downloading from: {USHCN_STATIONS_WEB_URL}\n")
-
-    download.download_from_url(USHCN_STATIONS_WEB_URL, ushcn_station_metadata_file_url)
-
-  else:
-    print("USHCN station metadata file was found. No need to download.\n")
+  ushcn_station_metadata_file_url = download.download_ushcn_station_metadata()
 
   dtypes = {
     'station_id': np.object,
@@ -144,14 +123,51 @@ def get_stations(station_file_name, country_codes_file_name):
     POPCSS: population class as determined by Satellite night lights 
      (C=Urban, B=Suburban, A=Rural)
   '''
-  if ONLY_RURAL and VERSION == 'v3':
+  if SURROUNDING_CLASS == 'rural' and VERSION == 'v3':
 
     gridded_stations_and_country_name = gridded_stations_and_country_name[
       (gridded_stations_and_country_name['popcls'] == 'R') & 
       (gridded_stations_and_country_name['popcss'] == 'A')
     ]
 
-  elif ONLY_URBAN and VERSION == 'v3':
+  elif SURROUNDING_CLASS == 'suburban' and VERSION == 'v3':
+
+    # is_rural = ((gridded_stations_and_country_name['popcls'] == 'R') & 
+    #   (gridded_stations_and_country_name['popcss'] == 'A'))
+
+    # is_urban = ((gridded_stations_and_country_name['popcls'] == 'U') & 
+    #   (gridded_stations_and_country_name['popcss'] == 'C'))
+
+    gridded_stations_and_country_name = gridded_stations_and_country_name[
+      ~(
+        (gridded_stations_and_country_name['popcls'] == 'U') & 
+        (gridded_stations_and_country_name['popcss'] == 'C')
+      ) & 
+      ~(
+        (gridded_stations_and_country_name['popcls'] == 'R') & 
+        (gridded_stations_and_country_name['popcss'] == 'A')
+      )
+    ]
+
+  elif SURROUNDING_CLASS == 'rural and suburban' and VERSION == 'v3':
+
+    gridded_stations_and_country_name = gridded_stations_and_country_name[
+      ~(
+        (gridded_stations_and_country_name['popcls'] == 'U') & 
+        (gridded_stations_and_country_name['popcss'] == 'C')
+      )
+    ]
+    
+  elif SURROUNDING_CLASS == 'suburban and urban' and VERSION == 'v3':
+
+    gridded_stations_and_country_name = gridded_stations_and_country_name[
+      ~(
+        (gridded_stations_and_country_name['popcls'] == 'R') & 
+        (gridded_stations_and_country_name['popcss'] == 'A')
+      )
+    ]
+
+  elif SURROUNDING_CLASS == 'urban' and VERSION == 'v3':
 
     gridded_stations_and_country_name = gridded_stations_and_country_name[
       (gridded_stations_and_country_name['popcls'] == 'U') & 
@@ -159,11 +175,27 @@ def get_stations(station_file_name, country_codes_file_name):
     ]
 
   # Limit data to only USHCN Data
-  if ONLY_USHCN:
+  if ONLY_USHCN and VERSION == 'v3':
 
     ushcn_stations = get_ushcn_stations()
 
     gridded_stations_and_country_name = limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations)
+
+  if USE_COUNTRY and VERSION == 'v3':
+
+    UPPERCASE_COUNTRY_NAME = USE_COUNTRY.upper()
+
+    if UPPERCASE_COUNTRY_NAME != 'ARTIC':
+
+      gridded_stations_and_country_name = gridded_stations_and_country_name[
+        gridded_stations_and_country_name['country'].str.contains(UPPERCASE_COUNTRY_NAME)
+      ]
+    else:
+      gridded_stations_and_country_name = gridded_stations_and_country_name[
+        gridded_stations_and_country_name['latitude'] >= ARTIC_CIRCLE_LATITUDE
+      ]
+
+      print(gridded_stations_and_country_name)
 
   # Return our parsed and joined table
   return gridded_stations_and_country_name
