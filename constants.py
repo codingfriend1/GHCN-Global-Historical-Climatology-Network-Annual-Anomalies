@@ -48,7 +48,7 @@ ONLY_USHCN = False
 USE_COUNTRY = False
 
 # Include a range of countries
-IN_COUNTRY = ['China', 'United States of America', 'Ireland', 'Artic']
+IN_COUNTRY = False
 
 # 
 # Calculated values

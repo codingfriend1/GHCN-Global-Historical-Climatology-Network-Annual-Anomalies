@@ -216,7 +216,7 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Environment class", str(SURROUNDING_CLASS)],
     ["USHCN only", str(ONLY_USHCN)],
     ["Limit to country", str(USE_COUNTRY)],
-    ["Countries used", str(", ".join(IN_COUNTRY))],
+    ["Countries used", str(", ".join(IN_COUNTRY) if IN_COUNTRY else "All")],
   ])
 
   my_table.set_deco(Texttable.HEADER | Texttable.BORDER)
