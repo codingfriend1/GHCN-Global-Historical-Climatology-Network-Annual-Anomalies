@@ -211,6 +211,7 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Temperatures file", get_file_name_from_path(GHCN_TEMPERATURES_FILE_PATH)],
     ["Stations file", get_file_name_from_path(STATION_FILE_PATH)],
     ["Anomaly reference average range", f"{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR + REFERENCE_RANGE - 1}"],
+    ["Absolute trends range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR}"],
     ["Trend range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}"],
     ["Purging flagged data", str(PURGE_FLAGS)],
     ["Environment class", str(SURROUNDING_CLASS)],
@@ -246,11 +247,11 @@ def print_summary_to_console(total_stations, GHCN_TEMPERATURES_FILE_PATH):
 
   print(f"Absolete Trends:\t\t{absolute_up_count} ↑ ({absolute_upwards_trend} Avg)  \t\t{absolute_down_count} ↓ ({absolute_downwards_trend} Avg)")
   if not absolute_all_trends == "Unknown":
-      print(f"Total Avg: {absolute_all_trends}°C {'rise' if float(absolute_all_trends) > 0 else 'fall'} every century")
+      print(f"Total Avg: {absolute_all_trends}°C {'rise' if float(absolute_all_trends) > 0 else 'fall'} every century between ({ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR})")
 
   print(f"Anomaly Trends: \t\t{anomaly_up_count} ↑ ({anomaly_upwards_trend} Avg)  \t\t{anomaly_down_count} ↓ ({anomaly_downwards_trend} Avg)")
   if not anomaly_all_trends == "Unknown":
-    print(f"Total Avg: {anomaly_all_trends}°C {'rise' if float(anomaly_all_trends) > 0 else 'fall'} every century")
+    print(f"Total Avg: {anomaly_all_trends}°C {'rise' if float(anomaly_all_trends) > 0 else 'fall'} every century between ({ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR})")
   print("")
   print(f"File output to {compose_file_name(GHCN_TEMPERATURES_FILE_PATH)}")
   print("\n")
