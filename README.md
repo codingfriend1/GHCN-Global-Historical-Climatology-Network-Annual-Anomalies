@@ -52,9 +52,9 @@ These are the steps used to recreate the results.
 
 15. The resulting Excel file will be printed to the folder where the command/terminal command is run from.
 
-### Now handles GHCNd
+### Now handles GHCN Daily Data
 
-You can now first compile daily GHCN data into a GHCNm-like file that can then be subsequently run by the main process.
+You can now first download and compile daily GHCN daily data into a GHCNm-like file that can then be subsequently run by the main process.
 
 ```
 python3 ./convert-daily-to-monthly-tavg.py
