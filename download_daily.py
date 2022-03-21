@@ -164,8 +164,8 @@ def download_GHCN_data():
 
     print(f"'{matching_tavg_daily_data[0]}' was found, no need to download or compile.\n")
 
-  GHCN_TEMPERATURES_FILE_PATH = os.path.join('.', matching_tavg_daily_data[0])
+  TEMPERATURES_FILE_PATH = os.path.join('.', matching_tavg_daily_data[0])
 
   download.download_landmask_data()
 
-  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH
+  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH

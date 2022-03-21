@@ -81,7 +81,7 @@ def update_statistics(trend, type):
 
   return visual
 
-def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
+def compose_file_name(TEMPERATURES_FILE_PATH):
   reference_text = f"-rolling-{REFERENCE_RANGE}"
   if REFERENCE_START_YEAR:
       reference_text = f"-{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR+REFERENCE_RANGE-1}r"
@@ -89,7 +89,7 @@ def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
   acceptable_percent = normal_round(ACCEPTABLE_AVAILABLE_DATA_PERCENT * 100)
   date = TODAY.strftime("%Y-%m-%d")
 
-  TEMPERATURE_FILE = get_file_name_from_path(GHCN_TEMPERATURES_FILE_PATH)
+  TEMPERATURE_FILE = get_file_name_from_path(TEMPERATURES_FILE_PATH)
 
   rural_text = ""
   if SURROUNDING_CLASS:
@@ -111,11 +111,11 @@ def compose_file_name(GHCN_TEMPERATURES_FILE_PATH):
 
   return OUTPUT_FILE_NAME
 
-def output_file(excel_data, GHCN_TEMPERATURES_FILE_PATH):
+def output_file(excel_data, TEMPERATURES_FILE_PATH):
 
   excel_data_pd = pd.DataFrame(excel_data)
 
-  OUTPUT_FILE_NAME = compose_file_name(GHCN_TEMPERATURES_FILE_PATH)
+  OUTPUT_FILE_NAME = compose_file_name(TEMPERATURES_FILE_PATH)
 
   EXCEL_WRITER = pd.ExcelWriter(OUTPUT_FILE_NAME)
 
@@ -202,13 +202,13 @@ def create_excel_file(
 
   output_file(excel_data, data_source)
 
-def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
+def print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
 
   my_table = Texttable()
 
   my_table.add_rows([
     ["Setting", "Value"],
-    ["Temperatures file", get_file_name_from_path(GHCN_TEMPERATURES_FILE_PATH)],
+    ["Temperatures file", get_file_name_from_path(TEMPERATURES_FILE_PATH)],
     ["Stations file", get_file_name_from_path(STATION_FILE_PATH)],
     ["Anomaly reference average range", f"{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR + REFERENCE_RANGE - 1}"],
     ["Absolute trends range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR}"],
@@ -228,7 +228,7 @@ def print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
   print(f"\n")
 
 # Print Summaries
-def print_summary_to_console(total_stations, GHCN_TEMPERATURES_FILE_PATH):
+def print_summary_to_console(total_stations, TEMPERATURES_FILE_PATH):
 
   # print('\n')
   # print('Estimated temperature percent', normal_round(num_of_estimated_temperature_readings / num_of_temperature_readings, 2))
@@ -253,5 +253,5 @@ def print_summary_to_console(total_stations, GHCN_TEMPERATURES_FILE_PATH):
   if not anomaly_all_trends == "Unknown":
     print(f"Total Avg: {anomaly_all_trends}°C {'rise' if float(anomaly_all_trends) > 0 else 'fall'} every century between ({ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR})")
   print("")
-  print(f"File output to {compose_file_name(GHCN_TEMPERATURES_FILE_PATH)}")
+  print(f"File output to {compose_file_name(TEMPERATURES_FILE_PATH)}")
   print("\n")

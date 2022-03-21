@@ -20,22 +20,22 @@ import download_daily
 
 t0 = time.perf_counter()
 
-STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = ("", "", "")
+STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = ("", "", "")
 
 # Check if files exist and if not, download them
 if VERSION in ['daily', 'test']:
-  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download_daily.download_GHCN_data()
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = download_daily.download_GHCN_data()
 else:
-  STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH = download.download_GHCN_data()
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = download.download_GHCN_data()
 
 # Show the Developer the settings they've chosen
-output.print_settings_to_console(GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
+output.print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
 
 # Parse Station metadata (.inv) into a DataFrame
 STATIONS = stations.get_stations(STATION_FILE_PATH, COUNTRIES_FILE_PATH)
 
 # Parse GHCN-M temperature data (.dat) into a DataFrame
-TEMPERATURES = temperatures.get_temperatures_by_station(GHCN_TEMPERATURES_FILE_PATH, STATIONS)
+TEMPERATURES = temperatures.get_temperatures_by_station(TEMPERATURES_FILE_PATH, STATIONS)
 
 # "TEMPERATURES" data is grouped by station, so counting its length will tell us the total number of Stations
 TOTAL_STATIONS = len(TEMPERATURES)
@@ -93,7 +93,7 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
 
 # Remember those statistics we collected earlier? We finally show them to the Developer in the Console.
-output.print_summary_to_console(TOTAL_STATIONS, GHCN_TEMPERATURES_FILE_PATH)
+output.print_summary_to_console(TOTAL_STATIONS, TEMPERATURES_FILE_PATH)
 
 
 
@@ -149,7 +149,7 @@ output.create_excel_file(
   anomalies_by_grid = annual_anomalies_by_grid,
   anomalies_by_station = annual_anomalies_by_station_dataframe,
 
-  data_source = GHCN_TEMPERATURES_FILE_PATH
+  data_source = TEMPERATURES_FILE_PATH
 )
 
 end_time = time.perf_counter() - t0

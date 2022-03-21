@@ -31,6 +31,7 @@ import tarfile
 import glob
 import os
 from google_drive_downloader import GoogleDriveDownloader as gdd
+from termcolor import colored, cprint
 
 EXTRACTED_FILES = []
 
@@ -43,9 +44,9 @@ COUNTRY_CODES_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/{COUNTR
 
 # Station metadata and temperature data URL
 
-ADJUSTED_ACRONYM = "qca" if VERSION == 'v3' else "qcf"
-
 UNADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.qcu.tar.gz"
+
+ADJUSTED_ACRONYM = "qca" if VERSION == 'v3' else "qcf"
 
 ADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.{ADJUSTED_ACRONYM}.tar.gz"
 
@@ -58,6 +59,9 @@ USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2
 # Landmask data 
 
 LAND_MASK_FILE_NAME = "landmask.dta"
+
+check_mark = colored(u'\u2713', 'green', attrs=['bold'])
+attention_mark = colored('!', 'yellow', attrs=['bold'])
 
 
 def get_ushcn_metadata_file_name():
@@ -85,9 +89,6 @@ def download_from_url(url, file_name):
 
 def download_if_needed(file_name, url, expected_count = 1):
 
-  # In the console, inform the Developer that we are checking if the file exists
-  print(f"\nChecking if '{file_name}' exists...")
-
   # Find files matching rejex file_name
   matching_files = glob.glob(file_name)
 
@@ -98,22 +99,20 @@ def download_if_needed(file_name, url, expected_count = 1):
     matching_files.sort()
 
     # Let the Developer know we don't need to download them
-    print(f"  No need for a download. Found:")
-    print('    ' + '\n    '.join(matching_files))
+    print(f"\n{check_mark} Found '{file_name}':")
+    print(f'  {check_mark} ' + f'\n  {check_mark} '.join(matching_files))
 
-    # Return the files
-    return matching_files
+    # Return the file(s)
+    return matching_files if expected_count > 1 else matching_files[0]
 
+  # If we are missing 1 or more expected files for this glob
   else:
 
-    # If the ending of the url is a tar gzip file, prepare to extract the download
-    needs_extraction = url.endswith('.tar.gz')
-
     # Let the developer know we need to download these files
-    print(f"  Expected {expected_count} file(s). Found ({len(matching_files)}). Downloading{' and extracting' if needs_extraction else ''} from {url}")
+    print(f"\n{attention_mark} Missing ({expected_count - len(matching_files)}) from '{file_name}'. Downloading from {url}")
 
-    # If the files are zipped:
-    if needs_extraction:
+    # If the ending of the url is a tar gzip file, prepare to extract the download
+    if url.endswith('.tar.gz'):
 
       # Download and extract the files
       extracted_file_names = download_and_extract_from_url(url)
@@ -122,8 +121,8 @@ def download_if_needed(file_name, url, expected_count = 1):
       extracted_file_names.sort()
 
       # Let the Developer know the extracted file names
-      print(f"  Successfully downloaded and extracted:")
-      print('    ' + '\n    '.join(extracted_file_names))
+      print(f"\n  {check_mark} Downloaded and extracted:")
+      print(f'    {check_mark} ' + f'\n    {check_mark} '.join(extracted_file_names))
 
       # Return the sorted, extracted file names
       return extracted_file_names
@@ -134,17 +133,17 @@ def download_if_needed(file_name, url, expected_count = 1):
       download_from_url(url, file_name)
 
       # Inform the Developer the file has been downloaded
-      print(f"  Successfully downloaded:")
-      print(f"    {file_name}")
+      print(f"\n  {check_mark} Downloaded '{file_name}'")
 
       # Return the file
-      return [ file_name ]
+      return file_name
 
 def download_landmask_data_if_needed():
 
-  print(f"\nChecking if '{LAND_MASK_FILE_NAME}' exists...")
-
   if not os.path.exists(LAND_MASK_FILE_NAME):
+
+    print(f"\n{attention_mark} Missing '{LAND_MASK_FILE_NAME}'.")
+
     '''
     Google Drive Land Mask obtained from https://github.com/aljones1816/GHCNV4_Analysis
     Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
@@ -155,7 +154,7 @@ def download_landmask_data_if_needed():
 
   else:
 
-    print(f"  Found '{LAND_MASK_FILE_NAME}'. No need for a download.")
+    print(f"\n{check_mark} Found '{LAND_MASK_FILE_NAME}'")
 
   return LAND_MASK_FILE_NAME
 
@@ -192,26 +191,35 @@ def download_GHCN_data():
   validate_constants()
 
   # Download the Country Codes file for GHCNm
-  COUNTRIES_FILE_PATH = download_if_needed(COUNTRY_CODES_FILE_NAME, COUNTRY_CODES_URL)[0]
+  COUNTRIES_FILE_PATH = download_if_needed(COUNTRY_CODES_FILE_NAME, COUNTRY_CODES_URL)
 
   # Download the GHCNm Unadjusted data if needed
-  GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
-    f"ghcnm.{VERSION}*/*qcu.*",UNADJUSTED_TAVG_LATEST_URL, expected_count = 2
+  TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
+    f"ghcnm.{VERSION}*/*qcu.*", UNADJUSTED_TAVG_LATEST_URL, expected_count = 2
   )
 
   # Download the GHCNm Adjusted data if needed
-  download_if_needed(
+  ADJUSTED_TEMPERATURES_FILE_PATH, ADJUSTED_STATION_METADATA_FILE_PATH = download_if_needed(
     f"ghcnm.{VERSION}*/*{ADJUSTED_ACRONYM}.*", ADJUSTED_TAVG_LATEST_URL, expected_count = 2
   )
 
   # Download the USHCN Station Metadata file if needed
-  USHCN_STATION_METADATA_FILE = download_if_needed(USHCN_STATION_METADATA_FILE_NAME, USHCN_STATIONS_WEB_URL)[0] if ONLY_USHCN and VERSION == 'v3' else ''
+  USHCN_STATION_METADATA_FILE = download_if_needed(
+    USHCN_STATION_METADATA_FILE_NAME, USHCN_STATIONS_WEB_URL
+  ) if ONLY_USHCN and VERSION == 'v3' else ''
 
   # Download the landmask if needed
   download_landmask_data_if_needed()
 
   print()
 
+  # If the Developer is not using the unadjusted dataset, return the adjusted dataset
+  if QUALITY_CONTROL_DATASET != 'qcu':
+
+    TEMPERATURES_FILE_PATH = ADJUSTED_TEMPERATURES_FILE_PATH
+
+    STATION_FILE_PATH = ADJUSTED_STATION_METADATA_FILE_PATH
+
   # Return the file paths
-  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH
+  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH
 
