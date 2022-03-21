@@ -7,7 +7,7 @@ import datetime
 import math
 
 # Which version of GHCNm to work with
-VERSION = 'daily' #v3, v4, daily
+VERSION = 'v3' #v3, v4, daily
 
 # Which Quality Controlled dataset to work with, adjusted or unadjusted
 QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
@@ -47,8 +47,8 @@ ONLY_USHCN = False
 # Include country name, ex: China, United States of America, Artic, Ireland (case-insensitive)
 USE_COUNTRY = False
 
-# Include a range of countries
-IN_COUNTRY = False
+# Include a range of countries, use an array of strings of each Country Name
+IN_COUNTRY = False # ['China', 'United States of America', 'Artic', 'Ireland']
 
 # 
 # Calculated values
