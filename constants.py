@@ -34,12 +34,12 @@ PRINT_STATION_ANOMALIES = False
 ABSOLUTE_START_YEAR = 1900 # Inclusive
 ABSOLUTE_END_YEAR = 2000 # Non-inclusive
 
+# How many months does each year of data need to include to accept that row of data
+MONTHS_REQUIRED_EACH_YEAR = 12
+
 # Restrict data to only use stations in a certain setting in GHCNm v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
 # SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban"
 SURROUNDING_CLASS = ""
-
-# How many months does each year of data need to include to accept that row of data
-MONTHS_REQUIRED_EACH_YEAR = 12
 
 # Only use stations from the USHCN network in GHCNm v3
 ONLY_USHCN = False
