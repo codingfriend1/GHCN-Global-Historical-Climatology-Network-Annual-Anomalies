@@ -238,6 +238,7 @@ for station_file_url in daily_station_files:
     numeric_only=True
   ).apply(lambda d : d if math.isnan(d) else int(normal_round(d * 10))).astype('Int64')
 
+  # Since we now have the averages of all days, we no longer need the daily values, so drop them
   station_temperature_data.drop(station_temperature_data.columns[3:34], axis=1, inplace=True)
 
   # Transform vertical month columns to horizontal row columns on the year and average TMAX and TMIN averages to combine them
@@ -250,7 +251,7 @@ for station_file_url in daily_station_files:
     dropna=False
   ).astype('Int64').reset_index()
 
-  # If the file has 12 months of data
+  # If the file has 12 columns, one for each month
   if len(station_temperature_data.columns) == 14 and len(station_temperature_data.values) > 1:
 
     # For each row in the station's data

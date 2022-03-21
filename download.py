@@ -12,8 +12,8 @@
   
   v4
   https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
-  https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcf.tar.gz
   https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcf.tar.gz
   https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt
 
   USHCN

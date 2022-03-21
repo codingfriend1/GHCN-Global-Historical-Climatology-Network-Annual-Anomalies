@@ -31,12 +31,12 @@ ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 PRINT_STATION_ANOMALIES = False
 
 # The range to consider when calculating trends for console output, does not effect excel results
-ABSOLUTE_START_YEAR = 1880 # Inclusive
-ABSOLUTE_END_YEAR = 2020 # Non-inclusive
+ABSOLUTE_START_YEAR = 1900 # Inclusive
+ABSOLUTE_END_YEAR = 2000 # Non-inclusive
 
 # Restrict data to only use stations in a certain setting in GHCNm v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
 # SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban"
-SURROUNDING_CLASS = "rural"
+SURROUNDING_CLASS = ""
 
 # How many months does each year of data need to include to accept that row of data
 MONTHS_REQUIRED_EACH_YEAR = 12

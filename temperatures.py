@@ -21,6 +21,8 @@ The column index on the temperature table that contains January temperature read
 2nd Column [1] - Station ID
 3rd Column [2] - Element (TAVG, TMAX, TMIN)
 4th Column [3] - January temperatures
+5th Column [4] - February temperatures
+...
 '''
 COLUMN_FOR_JAN_READINGS = 3
 
@@ -259,7 +261,7 @@ def get_temperatures_by_station(url, STATIONS):
     # If we are wishing to limit our results to a subset of stations
     if (SURROUNDING_CLASS) and VERSION == 'v3' or (ONLY_USHCN or USE_COUNTRY or IN_COUNTRY):
 
-      # Check if the station is in the Stations Dataframe (which has been limited to only rural stations)      
+      # Check if the station is in the Stations Dataframe (which may have been limited to stations within a sub-network or setting)      
       if not STATION_ID in STATIONS.index:
 
         # If the associated Station data is not found, skip this station

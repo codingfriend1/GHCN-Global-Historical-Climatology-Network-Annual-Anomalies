@@ -21,9 +21,9 @@ def get_reference_year_index():
 
   return INDEX_FOR_REFERENCE_START_YEAR, INDEX_FOR_REFERENCE_END_YEAR
 
-def determine_readings_needed_for_reliable_average(data_range):
+def determine_readings_needed_for_reliable_average(data_length):
   
-  return math.ceil(ACCEPTABLE_AVAILABLE_DATA_PERCENT * data_range)
+  return math.ceil(ACCEPTABLE_AVAILABLE_DATA_PERCENT * data_length)
 
 def average_reference_years_by_month(temperatures_by_month):
 
@@ -31,7 +31,7 @@ def average_reference_years_by_month(temperatures_by_month):
 
   reference_range = temperatures_by_month.iloc[:, range(INDEX_FOR_REFERENCE_START_YEAR, INDEX_FOR_REFERENCE_END_YEAR) ]
 
-  baseline_by_month = reference_range.mean(axis=1, skipna=True, level=None, numeric_only=True).round(2)
+  baseline_by_month = reference_range.mean(axis=1, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))
 
   # Determine the amount of necessary values to form a reliable average
   necessary_minimum_readings_to_form_a_reliable_average = determine_readings_needed_for_reliable_average(len(reference_range))
@@ -90,7 +90,7 @@ def calculate_anomalies_by_month_class(temperatures_by_month, baseline_by_month)
 
 def average_monthly_anomalies_by_year(lists_of_anomalies, axis=0):
 
-  average_anomalies_by_year = lists_of_anomalies.mean(axis=axis, skipna=True, level=None, numeric_only=True).round(2)
+  average_anomalies_by_year = lists_of_anomalies.mean(axis=axis, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))
 
   return average_anomalies_by_year
 
@@ -123,10 +123,10 @@ def average_anomalies_by_year_by_grid(lists_of_anomalies, include_land_ratio_in_
   for grid_label, stations_in_grid in stations_grouped_by_gridbox:
 
     # Determine the weight to give the grid based on it's land and land / water ratio
-    grid_weight = normal_round(stations.determine_grid_weight(grid_label, include_land_ratio_in_weight = include_land_ratio_in_weight), 4)
+    grid_weight = stations.determine_grid_weight(grid_label, include_land_ratio_in_weight = include_land_ratio_in_weight)
 
     # Average all the land stations for this grid
-    grid_average_by_year = stations_in_grid.mean(axis=0, skipna=True, level=None, numeric_only=True).round(2)
+    grid_average_by_year = stations_in_grid.mean(axis=0, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))
 
     annual_anomalies_by_grid[grid_label] = np.concatenate([ [grid_weight], grid_average_by_year])
 
@@ -162,6 +162,6 @@ def calculate_absolute_trend(temperatures_by_month):
 
     trends_by_month.append(calculate_trend(month_row))
 
-  average_absolute_trend = pd.DataFrame(trends_by_month).mean(axis=0, skipna=True, level=None, numeric_only=True).round(2)[0]
+  average_absolute_trend = pd.DataFrame(trends_by_month).mean(axis=0, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))[0]
 
   return average_absolute_trend

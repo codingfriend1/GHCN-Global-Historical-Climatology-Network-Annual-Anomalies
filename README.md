@@ -30,7 +30,7 @@ These are the steps used to recreate the results.
 
 4. For each month class (Jan to Jan, Feb to Feb, Mar to Mar), calculate anomalies from their respective fixed baselines.
 
-5. For each year in the station's data, average all twelve monthly anomalies. Each annual average must have at least one monthly anomaly.
+5. For each year in the station's data, average all twelve monthly anomalies. Each annual average must have at least the number monthly anomalies specified in `MONTHS_REQUIRED_EACH_YEAR = 12`.
 
 6. Divide the world into a grid of latitude and longitude quadrants (5°x5°) and associate each station with a grid quadrant based on the station's latitude and longitude.
 
@@ -46,9 +46,11 @@ These are the steps used to recreate the results.
 
 12. While the Developer waits for the calculations to process, the console will display each station ID, start and end year for the station being processed, name and country, grid quadrant, anomaly and absolute temperature trends (slope) for each station. The absolute temperature trend is calculated from the absolute temperature data for each month class separately and all resulting slopes are averaged into one slope for the station. The trend will only use temperature data between the `ABSOLUTE_START_YEAR` and `ABSOLUTE_END_YEAR` and will require the same minimum amount of available data in this range based on the `ACCEPTABLE_AVAILABLE_DATA_PERCENT`. These trends do not factor into the Excel sheet, but statistics will be collected on each station's trends and a final average of all absolute temperature trends will be displayed in the console at the end of the process. 
 
-13. Finally, the entire range of the annual data is set by `YEAR_RANGE_START = 1850` and ends with the current year. If the range specified is larger than each station's annual range, the monthly data for missing years will be filled with `NaN`. If you wish use a shorter range you may specify the end year with `YEAR_RANGE_END = ????`.
+13. The entire range of the annual data is set by `YEAR_RANGE_START = 1850` and ends with the current year. If the range specified is larger than each station's annual range, the monthly data for missing years will be filled with `NaN`. If you wish use a shorter range you may specify the end year with `YEAR_RANGE_END = ????`.
 
-14. The resulting Excel file will be printed to the folder where the command/terminal command is run from.
+14. The Developer may limit which stations are used in the calculation using the `SURROUNDING_CLASS`, `ONLY_USHCN`, `USE_COUNTRY` and `IN_COUNTRY`. This allows you to limit which countries are included and what type of setting, such as `"rural"`, `"suburban"`, `"urban"`, `"rural and suburban"`, or `"suburban and urban"` (applicable only to GHCNm v3).
+
+15. The resulting Excel file will be printed to the folder where the command/terminal command is run from.
 
 ## Plans
 

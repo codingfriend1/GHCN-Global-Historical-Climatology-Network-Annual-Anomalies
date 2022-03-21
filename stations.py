@@ -132,12 +132,7 @@ def get_stations(station_file_name, country_codes_file_name):
 
   elif SURROUNDING_CLASS == 'suburban' and VERSION == 'v3':
 
-    # is_rural = ((gridded_stations_and_country_name['popcls'] == 'R') & 
-    #   (gridded_stations_and_country_name['popcss'] == 'A'))
-
-    # is_urban = ((gridded_stations_and_country_name['popcls'] == 'U') & 
-    #   (gridded_stations_and_country_name['popcss'] == 'C'))
-
+    # Select all stations which are not fully rural and not fully urban
     gridded_stations_and_country_name = gridded_stations_and_country_name[
       ~(
         (gridded_stations_and_country_name['popcls'] == 'U') & 
