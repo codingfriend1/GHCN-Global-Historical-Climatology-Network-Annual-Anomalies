@@ -13,9 +13,13 @@ country-codes
 
 ghcnm.v4*
 ghcnm-countries.txt
-ghcnd.tavg*
-ghcnd-version.txt
+
 ghcnd_all
 ghcnd_all*
+
+ghcnd-countries.txt
+ghcnd-stations.txt
+ghcnd-version.txt
+ghcnd.tavg*
 
 landmask.dta
