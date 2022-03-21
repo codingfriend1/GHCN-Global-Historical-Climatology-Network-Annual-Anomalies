@@ -211,6 +211,7 @@ def print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Temperatures file", get_file_name_from_path(TEMPERATURES_FILE_PATH)],
     ["Stations file", get_file_name_from_path(STATION_FILE_PATH)],
     ["Anomaly reference average range", f"{REFERENCE_START_YEAR}-{REFERENCE_START_YEAR + REFERENCE_RANGE - 1}"],
+    ["Minimum required percent of years in baseline", f"{normal_round(ACCEPTABLE_AVAILABLE_DATA_PERCENT * 100, 0)}%"],
     ["Absolute trends range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR}"],
     ["Trend range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}"],
     ["Purging flagged data", str(PURGE_FLAGS)],
