@@ -2,9 +2,8 @@
   Author: Jon Paul Miles
   Date Created: March 15, 2022
 
-  Daily station data can be retrieved from:
+  Daily data README:
   https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
-  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/all/
 '''
 
 from constants import *
