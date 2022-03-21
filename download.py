@@ -49,16 +49,96 @@ UNADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION
 
 ADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.{ADJUSTED_ACRONYM}.tar.gz"
 
-
-# Landmask data 
-LAND_MASK_FILE_NAME = "landmask.dta"
-
 # USHCN Stations File and URL
 
 USHCN_STATION_METADATA_FILE_NAME = 'ushcn-v2.5-stations.txt'
 
 USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
 
+# Landmask data 
+
+LAND_MASK_FILE_NAME = "landmask.dta"
+
+
+def get_ushcn_metadata_file_name():
+
+  return USHCN_STATION_METADATA_FILE_NAME
+
+
+def download_and_extract_from_url(url):
+
+  ftpstream = urllib.request.urlopen(url)
+
+  ghcnurl = tarfile.open(fileobj=ftpstream, mode="r|gz")
+
+  ghcnurl.extractall()
+
+  extracted_file_names = ghcnurl.getnames()
+
+  return extracted_file_names
+
+
+def download_from_url(url, file_name):
+
+  urllib.request.urlretrieve(url, file_name)
+
+
+def download_if_needed(file_name, url, expected_count = 1):
+
+  # In the console, inform the Developer that we are checking if the file exists
+  print(f"\nChecking if '{file_name}' exists...")
+
+  # Find files matching rejex file_name
+  matching_files = glob.glob(file_name)
+
+  # If the number of files found matches the expected count:
+  if len(matching_files) >= expected_count:
+
+    # Sort the files
+    matching_files.sort()
+
+    # Let the Developer know we don't need to download them
+    print(f"  No need for a download. Found:")
+    print('    ' + '\n    '.join(matching_files))
+
+    # Return the files
+    return matching_files
+
+  else:
+
+    # If the ending of the url is a tar gzip file, prepare to extract the download
+    needs_extraction = url.endswith('.tar.gz')
+
+    # Let the developer know we need to download these files
+    print(f"  Expected {expected_count} file(s). Found ({len(matching_files)}). Downloading{' and extracting' if needs_extraction else ''} from {url}")
+
+    # If the files are zipped:
+    if needs_extraction:
+
+      # Download and extract the files
+      extracted_file_names = download_and_extract_from_url(url)
+
+      # Sort the files
+      extracted_file_names.sort()
+
+      # Let the Developer know the extracted file names
+      print(f"  Successfully downloaded and extracted:")
+      print('    ' + '\n    '.join(extracted_file_names))
+
+      # Return the sorted, extracted file names
+      return extracted_file_names
+
+    else:
+
+      # Download the file
+      download_from_url(url, file_name)
+
+      # Inform the Developer the file has been downloaded
+      print(f"  Successfully downloaded:")
+      print(f"    {file_name}")
+
+      # Return the file
+      return [ file_name ]
 
 def download_landmask_data_if_needed():
 
@@ -79,68 +159,6 @@ def download_landmask_data_if_needed():
 
   return LAND_MASK_FILE_NAME
 
-
-def download_and_extract_from_url(url):
-
-  ftpstream = urllib.request.urlopen(url)
-
-  ghcnurl = tarfile.open(fileobj=ftpstream, mode="r|gz")
-
-  ghcnurl.extractall()
-
-  extracted_file_names = ghcnurl.getnames()
-
-  return extracted_file_names
-
-def download_from_url(url, file_name):
-
-  urllib.request.urlretrieve(url, file_name)
-
-
-def download_if_needed(file_name, url, needs_extraction = False):
-
-  print(f"\nChecking if '{file_name}' exists...")
-
-  # Find files matching rejex file_name
-  matching_files = glob.glob(file_name)
-
-  if len(matching_files) > 0:
-
-    matching_files.sort()
-
-    print(f"  No need for a download. Found:")
-    print('    ' + '\n    '.join(matching_files))
-
-    return matching_files
-
-  else:
-
-    print(f"  '{file_name}' was not found. Downloading{' and extracting' if needs_extraction else ''} from {url}")
-
-    if needs_extraction:
-
-      extracted_file_names = download_and_extract_from_url(url)
-
-      extracted_file_names.sort()
-
-      print(f"  Successfully downloaded and extracted:")
-      print('    ' + '\n    '.join(extracted_file_names))
-
-      return extracted_file_names
-
-    else:
-
-      download_from_url(url, file_name)
-
-      print(f"  Successfully downloaded:")
-      print(f"    {file_name}")
-
-      return [ file_name ]
-
-
-def get_ushcn_metadata_file_name():
-
-  return USHCN_STATION_METADATA_FILE_NAME
 
 def validate_constants():
 
@@ -167,29 +185,33 @@ def validate_constants():
 
     quit()
 
+
 def download_GHCN_data():
 
+  # Validate that the constants in `constants.py` are appropriate
   validate_constants()
 
+  # Download the Country Codes file for GHCNm
   COUNTRIES_FILE_PATH = download_if_needed(COUNTRY_CODES_FILE_NAME, COUNTRY_CODES_URL)[0]
 
+  # Download the GHCNm Unadjusted data if needed
   GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
-    f"ghcnm.{VERSION}*/*qcu.dat",
-    UNADJUSTED_TAVG_LATEST_URL, 
-    needs_extraction = True
+    f"ghcnm.{VERSION}*/*qcu.*",UNADJUSTED_TAVG_LATEST_URL, expected_count = 2
   )
 
+  # Download the GHCNm Adjusted data if needed
   download_if_needed(
-    f"ghcnm.{VERSION}*/*{ADJUSTED_ACRONYM}.*", 
-    ADJUSTED_TAVG_LATEST_URL, 
-    needs_extraction = True
+    f"ghcnm.{VERSION}*/*{ADJUSTED_ACRONYM}.*", ADJUSTED_TAVG_LATEST_URL, expected_count = 2
   )
 
+  # Download the USHCN Station Metadata file if needed
   USHCN_STATION_METADATA_FILE = download_if_needed(USHCN_STATION_METADATA_FILE_NAME, USHCN_STATIONS_WEB_URL)[0] if ONLY_USHCN and VERSION == 'v3' else ''
 
+  # Download the landmask if needed
   download_landmask_data_if_needed()
 
   print()
 
+  # Return the file paths
   return STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH
 
