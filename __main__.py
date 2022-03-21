@@ -16,7 +16,6 @@ import stations
 import temperatures
 import anomaly
 import output
-import download_daily
 
 t0 = time.perf_counter()
 
