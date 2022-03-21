@@ -304,11 +304,12 @@ def download_GHCN_daily_data():
     # Check if the folder of daily station files has already been extracted
     matching_extracted_daily_folder = glob.glob(os.path.join('.', EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME))
 
-    # If not, download and extract the daily data
+    # If so, use it when compiling the daily data
     if len(matching_extracted_daily_folder):
 
       print(f"  {check_mark} Found '{EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME}'\n")
 
+    # If not, download and extract the daily data
     else:
 
       matching_gzipped_files = glob.glob(DAILY_TEMPERATURE_FILE_NAME)
