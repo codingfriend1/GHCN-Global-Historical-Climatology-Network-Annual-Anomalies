@@ -16,7 +16,7 @@ No adjustments or algorithms are run on the data, unless you choose to remove fl
 I am not a scientist. I'm an experienced web developer with an interest in researching the truth about global warming as a hobby, but I hope the transparency of my process will show that my methods are reliable and offer a competent understanding of the raw, unadjusted data.
 
 ## License
-MIT License - You are welcome to use and modify your copy of this code. If I have referenced anyone else's code here, please retain the credit given for their work.
+MIT License - You are welcome to use and modify your copy of this code. If I have referenced anyone else's code in the comments, please retain the credit given for their work.
 
 ## How to run
 
