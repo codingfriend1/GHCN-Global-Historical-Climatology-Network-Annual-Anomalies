@@ -12,6 +12,8 @@ ghcnm.v3*
 country-codes
 
 ghcnm.v4*
+ghcnm.tavg*
+*.xlsx
 ghcnm-countries.txt
 
 ghcnd_all
