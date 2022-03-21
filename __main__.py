@@ -24,7 +24,7 @@ STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = ("", "", "")
 
 # Check if files exist and if not, download them
 if VERSION in ['daily', 'test']:
-  STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = download_daily.download_GHCN_data()
+  STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = download.download_GHCN_daily_data()
 else:
   STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH = download.download_GHCN_data()
 

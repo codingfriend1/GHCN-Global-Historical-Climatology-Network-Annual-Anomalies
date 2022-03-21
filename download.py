@@ -22,6 +22,14 @@
 
   Land / Water Ratio per Grid Quadrant
   https://drive.google.com/file/d/1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj/view
+
+  Daily
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd_all.tar.gz
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt
+  https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countries.txt
+
 '''
 
 from constants import *
@@ -32,6 +40,7 @@ import glob
 import os
 from google_drive_downloader import GoogleDriveDownloader as gdd
 from termcolor import colored, cprint
+import daily
 
 EXTRACTED_FILES = []
 
@@ -60,7 +69,34 @@ USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2
 
 LAND_MASK_FILE_NAME = "landmask.dta"
 
+
+# Daily Data
+
+DAILY_VERSION_FILE_NAME = 'ghcnd-version.txt'
+
+DAILY_DATA_VERSION_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt'
+
+DAILY_COUNTRY_CODES_FILE_NAME = 'ghcnd-countries.txt'
+
+DAILY_COUNTRY_CODES_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countries.txt'
+
+DAILY_STATIONS_FILE_NAME = 'ghcnd-stations.txt'
+
+DAILY_STATIONS_METADATA_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
+
+COMPILED_DAILY_TEMPERATURE_FILE_REJEX = 'ghcnd.tavg*.dat'
+
+EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME = 'ghcnd_all'
+
+DAILY_TEMPERATURE_FILE_NAME = 'ghcnd_all.tar.gz'
+
+DAILY_TEMPERATURE_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd_all.tar.gz'
+
+
+# Console output marks
+
 check_mark = colored(u'\u2713', 'green', attrs=['bold'])
+
 attention_mark = colored('!', 'yellow', attrs=['bold'])
 
 
@@ -219,6 +255,81 @@ def download_GHCN_data():
     TEMPERATURES_FILE_PATH = ADJUSTED_TEMPERATURES_FILE_PATH
 
     STATION_FILE_PATH = ADJUSTED_STATION_METADATA_FILE_PATH
+
+  # Return the file paths
+  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH
+
+def get_daily_version():
+
+  DAILY_VERSION_FILE_PATH = download_if_needed(DAILY_VERSION_FILE_NAME, DAILY_DATA_VERSION_URL)
+
+  version_text = open(DAILY_VERSION_FILE_PATH, 'r').read()
+
+  version_name = version_text[37:56]
+
+  return version_name
+
+def download_GHCN_daily_data():
+
+  # Download the Country Codes file for GHCNd
+  COUNTRIES_FILE_PATH = download_if_needed(DAILY_COUNTRY_CODES_FILE_NAME, DAILY_COUNTRY_CODES_URL)
+
+  # Download GHCNd Station Metadata
+  STATION_FILE_PATH = download_if_needed(DAILY_STATIONS_FILE_NAME, DAILY_STATIONS_METADATA_URL)
+
+  download_landmask_data_if_needed()
+
+  # Check if the compiled daily data exists
+  matching_compiled_daily_files = glob.glob(COMPILED_DAILY_TEMPERATURE_FILE_REJEX)
+
+  TEMPERATURES_FILE_PATH = ""
+
+  # The compiled daily data file was found
+  if len(matching_compiled_daily_files):
+
+    TEMPERATURES_FILE_PATH = matching_compiled_daily_files[0]
+
+    print(f"\n{check_mark} Found '{COMPILED_DAILY_TEMPERATURE_FILE_REJEX}'")
+
+    print(f"  {check_mark} {TEMPERATURES_FILE_PATH}\n")
+
+  # If the compiled daily data doesn't exist
+  else:
+
+    # Get the latest daily version
+    DAILY_VERSION = get_daily_version()
+
+    print(f"\n{attention_mark} Missing '{COMPILED_DAILY_TEMPERATURE_FILE_REJEX}'")
+
+    # Check if the folder of daily station files has already been extracted
+    matching_extracted_daily_folder = glob.glob(os.path.join('.', EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME))
+
+    # If not, download and extract the daily data
+    if len(matching_extracted_daily_folder):
+
+      print(f"  {check_mark} Found '{EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME}'\n")
+
+    else:
+
+      matching_gzipped_files = glob.glob(DAILY_TEMPERATURE_FILE_NAME)
+
+      # If the zipped file does not exist, download and extract the daily station data
+      if not len(matching_gzipped_files):
+
+        download_if_needed(DAILY_TEMPERATURE_FILE_NAME, DAILY_TEMPERATURE_URL)
+
+      # If the zipped file already exists, extract it
+      else:
+
+        print(f"  {check_mark} Found '{DAILY_TEMPERATURE_FILE_NAME}', extracting... (this could take a while)\n")
+
+        ghcnd_data = tarfile.open(DAILY_TEMPERATURE_FILE_NAME, mode="r|gz")
+
+        ghcnd_data.extractall()
+      
+
+    # Compile the extracted files into a GHCNm-like TAVG file
+    TEMPERATURES_FILE_PATH = daily.compile_daily_data(DAILY_VERSION, EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME)
 
   # Return the file paths
   return STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH
