@@ -29,7 +29,7 @@ def read_land_mask():
 
 def get_ushcn_stations():
 
-  ushcn_station_metadata_file_url = download.download_ushcn_station_metadata()
+  ushcn_station_metadata_file_url = download.get_ushcn_metadata_file_name()
 
   dtypes = {
     'station_id': np.object,

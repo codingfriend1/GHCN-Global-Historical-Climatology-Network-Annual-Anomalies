@@ -33,151 +33,163 @@ import os
 from google_drive_downloader import GoogleDriveDownloader as gdd
 
 EXTRACTED_FILES = []
+
+# Country Codes File and URL
+
 COUNTRY_CODES_FILE_NAME = 'country-codes' if VERSION == 'v3' else 'ghcnm-countries.txt'
-LAND_MASK_FILE_NAME = "./landmask.dta"
-USHCN_STATION_METADATA_FILE_URL = 'ushcn-v2.5-stations.txt'
+
+COUNTRY_CODES_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/{COUNTRY_CODES_FILE_NAME}"
+
+
+# Station metadata and temperature data URL
+
+ADJUSTED_ACRONYM = "qca" if VERSION == 'v3' else "qcf"
+
+UNADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.qcu.tar.gz"
+
+ADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.{ADJUSTED_ACRONYM}.tar.gz"
+
+
+# Landmask data 
+LAND_MASK_FILE_NAME = "landmask.dta"
+
+# USHCN Stations File and URL
+
+USHCN_STATION_METADATA_FILE_NAME = 'ushcn-v2.5-stations.txt'
+
 USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
 
 
-def download_landmask_data():
-  '''
-  Google Drive Land Mask obtained from https://github.com/aljones1816/GHCNV4_Analysis
-  Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
-  License: GNU General Public License v3.0
-  Code for retrieving this file has been slightly modified from original: https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
-  '''
-  gdd.download_file_from_google_drive(file_id='1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj', dest_path=LAND_MASK_FILE_NAME, unzip=False)
+def download_landmask_data_if_needed():
+
+  print(f"\nChecking if '{LAND_MASK_FILE_NAME}' exists...")
+
+  if not os.path.exists(LAND_MASK_FILE_NAME):
+    '''
+    Google Drive Land Mask obtained from https://github.com/aljones1816/GHCNV4_Analysis
+    Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
+    License: GNU General Public License v3.0
+    Code for retrieving this file has been slightly modified from original: https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
+    '''
+    gdd.download_file_from_google_drive(file_id='1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj', dest_path=os.path.join('.', LAND_MASK_FILE_NAME), unzip=False)
+
+  else:
+
+    print(f"  Found '{LAND_MASK_FILE_NAME}'. No need for a download.")
+
+  return LAND_MASK_FILE_NAME
+
 
 def download_and_extract_from_url(url):
+
   ftpstream = urllib.request.urlopen(url)
+
   ghcnurl = tarfile.open(fileobj=ftpstream, mode="r|gz")
+
   ghcnurl.extractall()
 
+  extracted_file_names = ghcnurl.getnames()
+
+  return extracted_file_names
+
 def download_from_url(url, file_name):
+
   urllib.request.urlretrieve(url, file_name)
 
-def download_ushcn_station_metadata():
 
-  print(f"Checking if {USHCN_STATION_METADATA_FILE_URL} exists...")
+def download_if_needed(file_name, url, needs_extraction = False):
 
-  # If the file does not exist, download it
-  if not os.path.exists(USHCN_STATION_METADATA_FILE_URL):
+  print(f"\nChecking if '{file_name}' exists...")
 
-    print(f"USHCN Station Metadata does not exist. Downloading from: {USHCN_STATIONS_WEB_URL}\n")
+  # Find files matching rejex file_name
+  matching_files = glob.glob(file_name)
 
-    download_from_url(USHCN_STATIONS_WEB_URL, USHCN_STATION_METADATA_FILE_URL)
+  if len(matching_files) > 0:
 
-  else:
+    matching_files.sort()
 
-    print("USHCN station metadata file was found. No need to download.\n")
+    print(f"  No need for a download. Found:")
+    print('    ' + '\n    '.join(matching_files))
 
-  return USHCN_STATION_METADATA_FILE_URL
-
-def get_local_country_file():
-
-  # Get the Country Codes File
-  COUNTRIES_FILE_PATH = glob.glob(f"./{COUNTRY_CODES_FILE_NAME}")
-
-  if len(COUNTRIES_FILE_PATH):
-
-    COUNTRIES_FILE_PATH = COUNTRIES_FILE_PATH[0]
+    return matching_files
 
   else:
 
-    print(f"File '{COUNTRY_CODES_FILE_NAME}' is missing. Please delete the folder named 'ghcnm.{VERSION}*' and run this script again.\n")
+    print(f"  '{file_name}' was not found. Downloading{' and extracting' if needs_extraction else ''} from {url}")
+
+    if needs_extraction:
+
+      extracted_file_names = download_and_extract_from_url(url)
+
+      extracted_file_names.sort()
+
+      print(f"  Successfully downloaded and extracted:")
+      print('    ' + '\n    '.join(extracted_file_names))
+
+      return extracted_file_names
+
+    else:
+
+      download_from_url(url, file_name)
+
+      print(f"  Successfully downloaded:")
+      print(f"    {file_name}")
+
+      return [ file_name ]
+
+
+def get_ushcn_metadata_file_name():
+
+  return USHCN_STATION_METADATA_FILE_NAME
+
+def validate_constants():
+
+  # Validate VERSION and QUALITY_CONTROL_DATASET
+
+  if VERSION == 'v4' and not QUALITY_CONTROL_DATASET in ['qcu', 'qce', 'qcf']:
+
+    print("\nFor Version 4 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted), or 'qcf' (quality-control adjusted).")
+
+    print('See this readme file to decide which one to use: https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt\n')
+
     quit()
 
-  return COUNTRIES_FILE_PATH
+  elif VERSION == 'v3' and not QUALITY_CONTROL_DATASET in ['qcu', 'qca']:
+
+    print("\nFor Version 3 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted) or 'qca' (quality-control adjusted).")
+
+    print('See this readme file to decide which one to use: https://www.ncei.noaa.gov/pub/data/ghcn/v3/README\n')
+
+    quit()
+  elif not VERSION in ['v3', 'v4']:
+
+    print("Sorry, but only GHCNm version's 3 and 4 are supported at this time. In `constants.py` please set `VERSION = 'v4'` to 'v3' or 'v4'")
+
+    quit()
 
 def download_GHCN_data():
 
-  # Validate VERSION and QUALITY_CONTROL_DATASET
-  if VERSION == 'v4' and not QUALITY_CONTROL_DATASET in ['qcu', 'qce', 'qcf']:
-    print("\nFor Version 4 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted), or 'qcf' (quality-control adjusted).")
-    print('See this readme file to decide which one to use: https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt\n')
-    quit()
-  elif VERSION == 'v3' and not QUALITY_CONTROL_DATASET in ['qcu', 'qca']:
-    print("\nFor Version 3 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted) or 'qca' (quality-control adjusted).")
-    print('See this readme file to decide which one to use: https://www.ncei.noaa.gov/pub/data/ghcn/v3/README\n')
-    quit()
-  elif not VERSION in ['v3', 'v4']:
-    print("Sorry, but only GHCNm version's 3 and 4 are supported at this time. In `constants.py` please set `VERSION = 'v4'` to 'v3' or 'v4'")
-    quit()
+  validate_constants()
 
-  VERSION_FOLDER = glob.glob(f"ghcnm.{VERSION}*")
-  VERSION_FOLDER = [file for file in VERSION_FOLDER if not file.endswith('.xlsx')]
-  COUNTRIES_FILE_PATH = ""
+  COUNTRIES_FILE_PATH = download_if_needed(COUNTRY_CODES_FILE_NAME, COUNTRY_CODES_URL)[0]
 
-  print(f"\nChecking if folder 'ghcnm.{VERSION}*' exists within this directory...\n")
+  GHCN_TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
+    f"ghcnm.{VERSION}*/*qcu.dat",
+    UNADJUSTED_TAVG_LATEST_URL, 
+    needs_extraction = True
+  )
 
-  if not len(VERSION_FOLDER):
+  download_if_needed(
+    f"ghcnm.{VERSION}*/*{ADJUSTED_ACRONYM}.*", 
+    ADJUSTED_TAVG_LATEST_URL, 
+    needs_extraction = True
+  )
 
-    print(f"Folder not found. Downloading and extracting both Quality Controlled and Unadjusted GHCNm {VERSION} datasets from NOAA...\n")
+  USHCN_STATION_METADATA_FILE = download_if_needed(USHCN_STATION_METADATA_FILE_NAME, USHCN_STATIONS_WEB_URL)[0] if ONLY_USHCN and VERSION == 'v3' else ''
 
-    QUALITY_CONTROL_ADJUSTED_NAME = 'qca' if VERSION == 'v3' else 'qcf'
+  download_landmask_data_if_needed()
 
-    BASE_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}"
-    GHCNm_UNADJUSTED_URL = f"{BASE_URL}/ghcnm.tavg.latest.qcu.tar.gz"
-    GHCNm_ADJUSTED_URL = f"{BASE_URL}/ghcnm.tavg.latest.{QUALITY_CONTROL_ADJUSTED_NAME}.tar.gz"
-    COUNTRY_CODES_URL = f"{BASE_URL}/{COUNTRY_CODES_FILE_NAME}"
-
-    print(f"  Downloading unadjusted dataset: {GHCNm_UNADJUSTED_URL}")
-    download_and_extract_from_url(GHCNm_UNADJUSTED_URL)
-
-    print(f"  Downloading adjusted dataset: {GHCNm_ADJUSTED_URL}")
-    download_and_extract_from_url(GHCNm_ADJUSTED_URL)
-
-    print(f"  Downloading country codes for {VERSION}: {COUNTRY_CODES_URL}\n")
-    download_from_url(COUNTRY_CODES_URL, COUNTRY_CODES_FILE_NAME)
-
-    VERSION_FOLDER = glob.glob(f"ghcnm.{VERSION}*")[0]
-
-    EXTRACTED_FILES = glob.glob(f"{VERSION_FOLDER}/*")
-
-    print(f"\nSuccessfully downloaded:")
-    print(f"  {GHCNm_UNADJUSTED_URL}")
-    print(f"  {GHCNm_ADJUSTED_URL}")
-    print(f"  {COUNTRY_CODES_URL}")
-    print("\nExtracted to:")
-
-    for file in EXTRACTED_FILES:
-
-      print(f"  {file}")
-
-    COUNTRIES_FILE_PATH = get_local_country_file()
-    print(f"  {COUNTRY_CODES_FILE_NAME}")
-    print("")
-
-    download_landmask_data()
-
-  else:
-
-    COUNTRIES_FILE_PATH = get_local_country_file()
-
-    print(f"Local files:")
-    print(f"============\n")
-
-    EXTRACTED_FILES = glob.glob(f"{VERSION_FOLDER[0]}/*")
-
-    for file in EXTRACTED_FILES:
-
-      print(f"  {file}")
-
-    print(f"  {COUNTRIES_FILE_PATH}")
-    print('\n  No downloads necessary.')
-
-
-  
-
-  STATION_FILE_PATH = ""
-  GHCN_TEMPERATURES_FILE_PATH = ""
-
-  for file in EXTRACTED_FILES:
-    if QUALITY_CONTROL_DATASET in file:
-      if '.dat' in file:
-        GHCN_TEMPERATURES_FILE_PATH = file
-      elif '.inv' in file:
-        STATION_FILE_PATH = file
+  print()
 
   return STATION_FILE_PATH, COUNTRIES_FILE_PATH, GHCN_TEMPERATURES_FILE_PATH
 
