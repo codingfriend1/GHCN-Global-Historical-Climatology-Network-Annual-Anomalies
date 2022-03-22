@@ -203,13 +203,13 @@ def gather_daily_station_files(FOLDER_WITH_DAILY_DATA):
 def compile_daily_data(DAILY_VERSION, FOLDER_WITH_DAILY_DATA):
 
   # Prepare our mega file to save all combined station temperatures too
-  OUTPUT_FILE_URL = f"./ghcnd.tavg.{DAILY_VERSION}.qcu.dat"
+  OUTPUT_FILE_URL = f"./ghcnd.tavg.{DAILY_VERSION}.all.dat"
 
   if os.path.exists(OUTPUT_FILE_URL):
     
     os.remove(OUTPUT_FILE_URL)
 
-  print(f"Compiling daily data into a GHCNm-like monthly TAVG file to be named '{OUTPUT_FILE_URL}'\n")
+  print(f"\nCompiling daily data into a GHCNm-like monthly TAVG file to be named '{OUTPUT_FILE_URL}'\n")
 
   # Prepare the file for editing
   OUTPUT_CONTENT = open(OUTPUT_FILE_URL, 'a')

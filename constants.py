@@ -15,15 +15,16 @@ import math
   USCRN - U.S. Climate Reference Network
 
 '''
-NETWORK = "USCRN"
+NETWORK = "GHCN"
 
 '''
   Which version of the network to work with
 
   For GHCN - 'v3', 'v4', 'daily'
   For USHCN - 'v1', 'v2', 'v2.5'
+  For USCRN - 'v1'
 '''
-VERSION = 'v1'
+VERSION = 'v3'
 
 '''
   Which Quality Controlled dataset of the network to work with
@@ -31,8 +32,10 @@ VERSION = 'v1'
   For GHCN v3 - 'qcu', 'qca'
   For GHCN v4 - 'qcu', 'qcf'
   For USHCN v2.5 - 'raw', 'tob', 'FLs'
+  For USCRN v1 - 'monthly01'
+  For GHCN daily - 'all'
 '''
-QUALITY_CONTROL_DATASET = "monthly01"
+QUALITY_CONTROL_DATASET = "qcu"
 
 # Earliest year you want to consider in the data
 YEAR_RANGE_START = 1990
@@ -86,6 +89,8 @@ YEAR_AS_OF_TODAY = int(TODAY.strftime("%Y"))
 YEAR_RANGE_END = YEAR_AS_OF_TODAY + 1
 
 SURROUNDING_CLASS = SURROUNDING_CLASS.lower()
+
+MISSING_VALUE = -9999
 
 
 # Methods

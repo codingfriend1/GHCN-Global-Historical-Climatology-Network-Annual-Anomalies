@@ -9,13 +9,124 @@
 from constants import *
 import pandas as pd
 import numpy as np
+import glob
+from bs4 import BeautifulSoup
+import urllib.request
 from termcolor import colored, cprint
 import os
 
 check_mark = colored(u'\u2713', 'green', attrs=['bold'])
+attention_mark = colored('!', 'yellow', attrs=['bold'])
 
 # All GHCNd .dly station files have 31 days even if some days are missing
 DAYS_IN_MONTH = 31
+
+def download_and_compile_uscrn_data(compiled_file, folder_name, url):
+
+  TEMPERATURES_FILE_PATH = ""
+
+  # Check if the compiled USCRN data exists
+  matching_compiled_uscrn_files = glob.glob(compiled_file)
+
+  # The compiled daily data file was found
+  if len(matching_compiled_uscrn_files):
+
+    TEMPERATURES_FILE_PATH = matching_compiled_uscrn_files[0]
+
+    print(f"{check_mark} Found '{compiled_file}'")
+
+  # If the compiled daily data doesn't exist
+  else:
+
+    print(f"{attention_mark} Missing '{compiled_file}'")
+
+    # Check if the folder of USCRN station files has already been downloaded
+    matching_extracted_uscrn_files = glob.glob(os.path.join('.', folder_name, '*'))
+
+    # If so, use it when compiling the data
+    if len(matching_extracted_uscrn_files):
+
+      print(f"{check_mark} Found '{folder_name}':")
+      print(f'  {check_mark} ' + f'\n  {check_mark} '.join(matching_extracted_uscrn_files))
+
+    # If not, download the USCRN data
+    else:
+
+      station_files = []
+
+      print(f"{attention_mark} Missing '{folder_name}'. Downloading from {url}")
+
+      # Make a folder to save the USCRN station files to
+      if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
+      # Read the link to all the station files
+      soup = BeautifulSoup(urllib.request.urlopen(url), features="html.parser")
+
+      # Get the links for this HTML page
+      for a in soup.find_all('a'):
+
+        link = a['href']
+
+        # If the link is a CRN station .txt file:
+        if 'CRN' in link and link.endswith('.txt'):
+
+          # Join the link file name with the url
+          station_url = os.path.join(url, link)
+
+          # Join the folder name with the file name
+          station_file_path = os.path.join(folder_name, link)
+
+          # Download the file
+          urllib.request.urlretrieve(station_url, station_file_path)
+
+          # Add to our station file list for displaying in the console later
+          station_files.append(station_file_path) 
+
+      print(f"  {check_mark} Downloaded:")
+      print(f'    {check_mark} ' + f'\n  {check_mark} '.join(station_files))
+
+    TEMPERATURES_FILE_PATH = compile_uscrn_data(VERSION, folder_name)
+
+  return TEMPERATURES_FILE_PATH
+
+def get_files():
+
+  COUNTRIES_FILE_PATH = ""
+
+  STATION_FILE_PATH = 'stations.tsv'
+
+  TEMPERATURES_FILE_PATH = download_and_compile_uscrn_data(
+    compiled_file = 'uscrn.tavg.v1.dat', 
+    folder_name = 'uscrn_stations_v1',
+    url = 'https://www.ncei.noaa.gov/pub/data/uscrn/products/monthly01/'
+  )
+
+  return STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH
+
+
+def get_stations(station_file_name):
+
+  names = [ 'station_id', 'country_code', 'state', 'LOCATION', 'VECTOR', 'name', 'latitude', 'longitude', 'elevation', 'STATUS', 'COMMISSIONING', 'CLOSING', 'OPERATION', 'PAIRING', 'network', 'other_station_id' ]
+  # names=names,
+
+  stations = pd.read_csv(
+    station_file_name, 
+    sep="\t",
+    names = names,
+    header=None,
+    skiprows=[0],
+    encoding='utf-8', 
+  ).reset_index()
+
+  # Pad Station ID
+  stations['station_id'] = 'USCRN' + stations['station_id'].astype('str').apply(lambda s: str(s).rjust(6, '0') )
+
+  stations = stations[['country_code', 'station_id', 'latitude', 'longitude', 'elevation', 'name', 'state']]
+
+  stations['country'] = 'United States of America'
+
+  return stations
 
 def has_passing_flags(MFLAG, QFLAG, SFLAG):
 

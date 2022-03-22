@@ -29,7 +29,14 @@
   https://www.ncei.noaa.gov/pub/data/uscrn/products/monthly01/
 
   Land / Water Ratio per Grid Quadrant
+
+  Google Drive Land Mask obtained from https://github.com/aljones1816/GHCNV4_Analysis
+  Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
+  License: GNU General Public License v3.0
+  Code for retrieving this file has been slightly modified from original: https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
+
   https://drive.google.com/file/d/1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj/view
+  https://drive.google.com/uc?export=download&id=1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj
 
   Daily
   https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
@@ -44,97 +51,68 @@ from constants import *
 
 import urllib.request
 import tarfile
-import glob
 import os
-from bs4 import BeautifulSoup
 from google_drive_downloader import GoogleDriveDownloader as gdd
 from termcolor import colored, cprint
-import daily
-import uscrn
 
-DOWNLOADABLES = {
+from networks import ghcn
+from networks import ushcn
+from networks import uscrn
+
+
+
+REQUIRED_DOWNLOADS = {
   
   'GHCN': {
 
     'v3': {
-
-      'countries': {
-        'file_name': 'country-codes',
-        'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/country-codes'
-      },
-
-      'quality_adjusted_version': {
-
-        'qcu': {
-          'file_name': f"ghcnm.v3*/*qcu.*",
-          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qcu.tar.gz',
-          'expected_count': 2
-        },
-
-        'qca': {
-          'file_name': f"ghcnm.v3*/*qca.*",
-          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qca.tar.gz',
-          'expected_count': 2
-        }
-
-      }
-
+      'qcu': [
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/country-codes',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qcu.tar.gz'
+      ],
+      'qca': [
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/country-codes',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qca.tar.gz'
+      ],
     },
 
     'v4': {
-
-      'countries': {
-        'file_name': 'ghcnm-countries.txt',
-        'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt'
-      },
-
-      'quality_adjusted_version': {
-
-        'qcu': {
-          'file_name': f"ghcnm.v4*/*qcu.*",
-          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz',
-          'expected_count': 2
-        },
-
-        'qcf': {
-          'file_name': f"ghcnm.v4*/*qcf.*",
-          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcf.tar.gz',
-          'expected_count': 2
-        }
-
-      }
-
+      'qcu': [
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz'
+      ],
+      'qcf': [
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcf.tar.gz'
+      ],
     },
+
+    'daily': {
+      'all': [
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countries.txt',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt',
+        'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd_all.tar.gz'
+      ]
+    }
 
   },
 
   'USHCN': {
 
     'v2.5': {
-
-      'stations': {
-        'file_name': 'ushcn-v2.5-stations.txt',
-        'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
-      },
-
-      'quality_adjusted_version': {
-
-        'raw': {
-          'file_name': 'ushcn.v2.5*/*.raw.tavg',
-          'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.raw.tar.gz'
-        },
-
-        'tob': {
-          'file_name': 'ushcn.v2.5*/*.tob.tavg',
-          'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.tob.tar.gz'
-        },
-
-        'FLs': {
-          'file_name': 'ushcn.v2.5*/*.FLs*.tavg',
-          'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.FLs.52j.tar.gz'
-        }
-
-      },
+      'raw': [
+        'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt',
+        'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.raw.tar.gz'
+      ],
+      'tob': [
+        'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt',
+        'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.tob.tar.gz'
+      ],
+      'FLs': [
+        'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt',
+        'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.FLs.52j.tar.gz'
+      ],
 
     }
 
@@ -143,23 +121,7 @@ DOWNLOADABLES = {
   'USCRN': {
 
     'v1': {
-
-      'stations': {
-        'file_name': 'stations.tsv',
-        'url': 'https://www.ncei.noaa.gov/pub/data/uscrn/products/stations.tsv'
-      },
-
-      'quality_adjusted_version': {
-
-        'monthly01': {
-          'file_name': 'monthly01',
-          'folder_name': 'uscrn_stations_v1',
-          'compiled_file': 'uscrn.tavg.v1.dat',
-          'url': 'https://www.ncei.noaa.gov/pub/data/uscrn/products/monthly01/'
-        }
-
-      }
-
+      'monthly01': ['https://www.ncei.noaa.gov/pub/data/uscrn/products/stations.tsv']
     }
     
   }
@@ -170,28 +132,21 @@ DOWNLOADABLES = {
 
 LAND_MASK_FILE_NAME = "landmask.dta"
 
+LAND_MASK_URL = 'https://drive.google.com/uc?export=download&id=1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj'
 
-# Daily Data
 
-DAILY_VERSION_FILE_NAME = 'ghcnd-version.txt'
+# GHCN Daily Data
 
-DAILY_DATA_VERSION_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-version.txt'
+DAILY_ARCHIVE_FILE = 'ghcnd_all.tar.gz'
 
-DAILY_COUNTRY_CODES_FILE_NAME = 'ghcnd-countries.txt'
+EXTRACTED_DAILY_FOLDER = 'ghcnd_all'
 
-DAILY_COUNTRY_CODES_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-countries.txt'
+COMPILED_DAILY = 'ghcnd.tavg*.dat'
 
-DAILY_STATIONS_FILE_NAME = 'ghcnd-stations.txt'
+# Exception
 
-DAILY_STATIONS_METADATA_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt'
-
-COMPILED_DAILY_TEMPERATURE_FILE_REJEX = 'ghcnd.tavg*.dat'
-
-EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME = 'ghcnd_all'
-
-DAILY_TEMPERATURE_FILE_NAME = 'ghcnd_all.tar.gz'
-
-DAILY_TEMPERATURE_URL = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd_all.tar.gz'
+v3_unadjusted = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qcu.tar.gz'
+v3_unadjusted_file = 'ghcnm.v3.tavg.latest.qcu.tar.gz'
 
 
 # Console output marks
@@ -201,377 +156,124 @@ check_mark = colored(u'\u2713', 'green', attrs=['bold'])
 attention_mark = colored('!', 'yellow', attrs=['bold'])
 
 
-def get_ushcn_metadata_file_name():
-
-  return USHCN_STATION_METADATA_FILE_NAME
-
-
-def download_and_extract_from_url(url):
-
-  ftpstream = urllib.request.urlopen(url)
-
-  ghcnurl = tarfile.open(fileobj=ftpstream, mode="r|gz")
-
-  ghcnurl.extractall()
-
-  extracted_file_names = ghcnurl.getnames()
-
-  return extracted_file_names
-
-
-def download_from_url(url, file_name):
-
-  urllib.request.urlretrieve(url, file_name)
-
-
-def download_if_needed(file_name, url, expected_count = 1):
-
-  # Find files matching rejex file_name
-  matching_files = glob.glob(file_name)
-
-  # If the number of files found matches the expected count:
-  if len(matching_files) >= expected_count:
-
-    # Sort the files
-    matching_files.sort()
-
-    # Let the Developer know we don't need to download them
-    print(f"\n{check_mark} Found '{file_name}':")
-    print(f'  {check_mark} ' + f'\n  {check_mark} '.join(matching_files))
-
-    # Return the file(s)
-    return matching_files if expected_count > 1 else matching_files[0]
-
-  # If we are missing 1 or more expected files for this glob
-  else:
-
-    # Let the developer know we need to download these files
-    print(f"\n{attention_mark} Missing ({expected_count - len(matching_files)}) from '{file_name}'. Downloading from {url}")
-
-    # If the ending of the url is a tar gzip file, prepare to extract the download
-    if url.endswith('.tar.gz'):
-
-      # Download and extract the files
-      extracted_file_names = download_and_extract_from_url(url)
-
-      # Sort the files
-      extracted_file_names.sort()
-
-      # Let the Developer know the extracted file names
-      print(f"\n  {check_mark} Downloaded and extracted:")
-      print(f'    {check_mark} ' + f'\n    {check_mark} '.join(extracted_file_names))
-
-      # Return the sorted, extracted file names
-      return extracted_file_names
-
-    else:
-
-      # Download the file
-      download_from_url(url, file_name)
-
-      # Inform the Developer the file has been downloaded
-      print(f"\n  {check_mark} Downloaded '{file_name}'")
-
-      # Return the file
-      return file_name
-
-
 def download_landmask_data_if_needed():
 
-  if not os.path.exists(LAND_MASK_FILE_NAME):
+  if os.path.exists(LAND_MASK_FILE_NAME):
 
-    print(f"\n{attention_mark} Missing '{LAND_MASK_FILE_NAME}'.")
-
-    '''
-    Google Drive Land Mask obtained from https://github.com/aljones1816/GHCNV4_Analysis
-    Author: Alan (aljones1816) (Twitter: @TheAlonJ) https://github.com/aljones1816
-    License: GNU General Public License v3.0
-    Code for retrieving this file has been slightly modified from original: https://github.com/aljones1816/GHCNV4_Analysis/blob/main/analysis_code.py
-    '''
-    gdd.download_file_from_google_drive(file_id='1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj', dest_path=os.path.join('.', LAND_MASK_FILE_NAME), unzip=False)
+    print(f"{check_mark} Found '{LAND_MASK_FILE_NAME}'")
 
   else:
 
-    print(f"\n{check_mark} Found '{LAND_MASK_FILE_NAME}'")
+    print(f"{attention_mark} Missing '{LAND_MASK_FILE_NAME}'.")
+
+    gdd.download_file_from_google_drive(file_id='1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj', dest_path=os.path.join('.', LAND_MASK_FILE_NAME), unzip=False)
 
   return LAND_MASK_FILE_NAME
 
+# Search within a dictionary for a value. If it doesn't exist end the program and inform the user that the value doesn't exist in the provided `label` and offer options that do exist.
+def get_tree(value, dictionary, label):
 
-def get_correct_bundles(NETWORK, VERSION, QUALITY_CONTROL_DATASET):
+  if value in dictionary:
 
-  STATIONS_BUNDLE = False
-  COUNTRIES_BUNDLE = False
-  TEMPERATURE_BUNDLE = False
-
-  if NETWORK in DOWNLOADABLES:
-
-    NETWORK_DOWNLOADABLES = DOWNLOADABLES[NETWORK]
-
-    if VERSION in NETWORK_DOWNLOADABLES:
-
-      NETWORK_VERSION_DOWNLOADABLES = NETWORK_DOWNLOADABLES[VERSION]
-
-      STATIONS_BUNDLE = NETWORK_VERSION_DOWNLOADABLES['stations'] if 'stations' in NETWORK_VERSION_DOWNLOADABLES else False
-
-      COUNTRIES_BUNDLE = NETWORK_VERSION_DOWNLOADABLES['countries'] if 'countries' in NETWORK_VERSION_DOWNLOADABLES else False
-
-      if QUALITY_CONTROL_DATASET in NETWORK_VERSION_DOWNLOADABLES['quality_adjusted_version']:
-
-        TEMPERATURE_BUNDLE = NETWORK_VERSION_DOWNLOADABLES['quality_adjusted_version'][QUALITY_CONTROL_DATASET]
-
-      else:
-
-        QUALITY_DATASET_CHOICES = NETWORK_VERSION_DOWNLOADABLES['quality_adjusted_version'].keys()
-
-        print(f"Sorry, but version '{QUALITY_CONTROL_DATASET}' is not supported in network '{NETWORK} {VERSION}'. Please use one of:")
-        print(f"  " + "\n  ".join(QUALITY_DATASET_CHOICES))
-
-        quit()
-
-    else:
-
-      version_choices = NETWORK_DOWNLOADABLES.keys()
-
-      print(f"Sorry, but version '{VERSION}' is not supported in network '{NETWORK}'. Please use one of:")
-      print(f"  " + "\n  ".join(version_choices))
-
-      quit()
+    return dictionary[value]
 
   else:
 
-    network_choices = DOWNLOADABLES.keys()
+    print(f"Sorry, but '{value}' is not an available {label}. Try:")
 
-    print(f"Sorry, but network '{NETWORK}' is not supported. Please use one of:")
-    print(f"  " + "\n  ".join(network_choices))
+    print(f"  " + "\n  ".join(dictionary.keys()))
 
     quit()
 
+# For each url provided, check if the file has already been downloaded and if not then download the file and return a list of downloaded files
+def download_if_needed(urls):
 
-  return STATIONS_BUNDLE, COUNTRIES_BUNDLE, TEMPERATURE_BUNDLE
+  downloaded_files = []
 
-def compile_station_files_into_dat_file(STATION_FILES):
+  for url in urls:
 
-  total_stations = '{:,}'.format(len(STATION_FILES))
+    file_name = os.path.basename(url) if url != v3_unadjusted else v3_unadjusted_file
 
-  STATION_FOLDER = STATION_FILES[0].split('/')[0]
-
-  OUTPUT_FILE_URL = f"{STATION_FOLDER}.{QUALITY_CONTROL_DATASET}.dat"
-
-  print(f"\n Compiling {total_stations} station files into '{OUTPUT_FILE_URL}'\n")
-
-  if os.path.exists(OUTPUT_FILE_URL):
+    downloaded_files.append(file_name)
     
-    os.remove(OUTPUT_FILE_URL)
+    if os.path.exists(file_name):
 
-  with open(OUTPUT_FILE_URL, "wb") as output_file:
+      print(f"{check_mark} Found '{file_name}'")
 
-    for station_file_path in STATION_FILES:
-
-      with open(station_file_path, "rb") as station_file_contents:
-
-        output_file.write(station_file_contents.read())
-
-  return OUTPUT_FILE_URL
-
-def download_and_compile_uscrn_data(TEMPERATURE_BUNDLE):
-
-  TEMPERATURES_FILE_PATH = ""
-
-  # Check if the compiled USCRN data exists
-  matching_compiled_uscrn_files = glob.glob(TEMPERATURE_BUNDLE['compiled_file'])
-
-  # The compiled daily data file was found
-  if len(matching_compiled_uscrn_files):
-
-    TEMPERATURES_FILE_PATH = matching_compiled_uscrn_files[0]
-
-    print(f"\n{check_mark} Found '{TEMPERATURE_BUNDLE['compiled_file']}'")
-
-    print(f"  {check_mark} {TEMPERATURES_FILE_PATH}\n")
-
-  # If the compiled daily data doesn't exist
-  else:
-
-    print(f"\n{attention_mark} Missing '{TEMPERATURE_BUNDLE['compiled_file']}'")
-
-    # Check if the folder of USCRN station files has already been downloaded
-    matching_extracted_uscrn_files = glob.glob(os.path.join('.', TEMPERATURE_BUNDLE['folder_name'], '*'))
-
-    # If so, use it when compiling the data
-    if len(matching_extracted_uscrn_files):
-
-      print(f"\n{check_mark} Found '{TEMPERATURE_BUNDLE['folder_name']}':")
-      print(f'  {check_mark} ' + f'\n  {check_mark} '.join(matching_extracted_uscrn_files))
-
-    # If not, download the USCRN data
     else:
 
-      station_files = []
+      print(f"{attention_mark} Missing '{file_name}'. Downloading from {url}")
 
-      print(f"\n{attention_mark} Missing '{TEMPERATURE_BUNDLE['folder_name']}'. Downloading from {TEMPERATURE_BUNDLE['url']}")
+      urllib.request.urlretrieve(url, file_name)
 
-      # Make a folder to save the USCRN station files to
-      os.mkdir(TEMPERATURE_BUNDLE['folder_name'])
+      print(f"  {check_mark} Downloaded '{file_name}'")
 
-      # Read the link to all the station files
-      soup = BeautifulSoup(urllib.request.urlopen(TEMPERATURE_BUNDLE['url']), features="html.parser")
+  return downloaded_files
 
-      # Get the links for this HTML page
-      for a in soup.find_all('a'):
+# Check if any file in the files to be extracted doesn't already exist, then it needs to be extracted
+def needs_extraction(files_to_be_extracted):
 
-        link = a['href']
+  for potential_extraction in files_to_be_extracted:
 
-        # If the link is a CRN station .txt file:
-        if 'CRN' in link and link.endswith('.txt'):
+    if not os.path.exists(potential_extraction):
 
-          # Join the link file name with the url
-          station_url = os.path.join(TEMPERATURE_BUNDLE['url'], link)
+      return True
 
-          # Join the folder name with the file name
-          station_file_path = os.path.join(TEMPERATURE_BUNDLE['folder_name'], link)
+# For each file provided, check if the file is zipped and if its unzipped contents don't already exist, unzip the file
+def extract_if_needed(downloaded_files):
 
-          # Download the file
-          download_from_url(station_url, station_file_path)
+  for file_name in downloaded_files:
 
-          # Add to our station file list for displaying in the console later
-          station_files.append(station_file_path) 
+    if file_name.endswith('.tar.gz'):
 
-      print(f"\n  {check_mark} Downloaded:")
-      print(f'  {check_mark} ' + f'\n  {check_mark} '.join(station_files))
+      file_preview = tarfile.open(file_name, mode="r|gz")
 
-    TEMPERATURES_FILE_PATH = uscrn.compile_uscrn_data(VERSION, TEMPERATURE_BUNDLE['folder_name'])
+      # See the names of the files to be unzipped without actually extracting them
+      files_to_be_extracted = file_preview.getnames()
 
-  return TEMPERATURES_FILE_PATH
+      is_needing_extraction = needs_extraction(files_to_be_extracted)
 
-def download_data():
+      if is_needing_extraction:
 
-  if NETWORK == 'GHCN' and VERSION == 'daily':
+        print(f"Extracting '{file_name}' to:")
 
-    return download_GHCN_daily_data()
+        tarfile.open(file_name, mode="r|gz").extractall()
 
-  else:
+        print(f'  {check_mark} ' + f'\n  {check_mark} '.join(files_to_be_extracted)) 
 
-    STATIONS_BUNDLE, COUNTRIES_BUNDLE, TEMPERATURE_BUNDLE = get_correct_bundles(
-      NETWORK, VERSION, QUALITY_CONTROL_DATASET
-    )
+# If the compiled daily data exists, or if the daily data folder is already extracted, do nothing. Otherwise, extract the daily data.
+def extract_daily_if_needed():
 
-    COUNTRIES_FILE_PATH, STATION_FILE_PATH, TEMPERATURES_FILE_PATH, TEMPERATURES_FOLDER = ("", "", "", "")
+  if NETWORK == 'GHCN':
 
-    if STATIONS_BUNDLE:
+    if not os.path.exists(COMPILED_DAILY) and not os.path.exists(EXTRACTED_DAILY_FOLDER):
 
-      STATION_FILE_PATH = download_if_needed(STATIONS_BUNDLE['file_name'], STATIONS_BUNDLE['url'])
-
-    if COUNTRIES_BUNDLE:
-
-      COUNTRIES_FILE_PATH = download_if_needed(COUNTRIES_BUNDLE['file_name'], COUNTRIES_BUNDLE['url'])
-
-    if TEMPERATURE_BUNDLE:
-
-      expected_count = TEMPERATURE_BUNDLE['expected_count'] if 'expected_count' in TEMPERATURE_BUNDLE else 1
-
-      if expected_count == 2:
-
-        TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
-          TEMPERATURE_BUNDLE['file_name'], TEMPERATURE_BUNDLE['url'], expected_count
-        )
-
-      # If the expected_count is not 2, then it is likely the USHCN or USCRN network in which case we will expect a folder of station files rather than a single .dat file
-      else:
-
-        STATION_FILES = []
-
-        if NETWORK == 'USCRN':
-
-          TEMPERATURES_FILE_PATH = download_and_compile_uscrn_data(TEMPERATURE_BUNDLE)
-
-        else:
-          
-          STATION_FILES = download_if_needed(
-            TEMPERATURE_BUNDLE['file_name'], TEMPERATURE_BUNDLE['url'], expected_count = 3
-          )
-
-          # Compile the station files into a single .dat file
-          TEMPERATURES_FILE_PATH = compile_station_files_into_dat_file(STATION_FILES)
-
-    download_landmask_data_if_needed()
-
-    return STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH
+      tarfile.open(DAILY_ARCHIVE_FILE, mode="r|gz").extractall()
 
 
-def get_daily_version():
+# Download and compile the necessary files and return the associated STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH for the given NETWORK, VERSION, and QUALITY_CONTROL_DATASET
+def get_files():
 
-  DAILY_VERSION_FILE_PATH = download_if_needed(DAILY_VERSION_FILE_NAME, DAILY_DATA_VERSION_URL)
+  versions = get_tree(NETWORK, REQUIRED_DOWNLOADS, 'network')
 
-  version_text = open(DAILY_VERSION_FILE_PATH, 'r').read()
+  datasets = get_tree(VERSION, versions, f"version of '{NETWORK}'")
 
-  version_name = version_text[37:56]
+  downloadables = get_tree(QUALITY_CONTROL_DATASET, datasets, f"dataset in '{NETWORK} {VERSION}'")
 
-  return version_name
-
-
-def download_GHCN_daily_data():
-
-  # Download the Country Codes file for GHCNd
-  COUNTRIES_FILE_PATH = download_if_needed(DAILY_COUNTRY_CODES_FILE_NAME, DAILY_COUNTRY_CODES_URL)
-
-  # Download GHCNd Station Metadata
-  STATION_FILE_PATH = download_if_needed(DAILY_STATIONS_FILE_NAME, DAILY_STATIONS_METADATA_URL)
+  downloaded_files = download_if_needed(downloadables)
+  
+  extract_daily_if_needed() if VERSION == 'daily' else extract_if_needed(downloaded_files) 
 
   download_landmask_data_if_needed()
+  
+  if NETWORK == 'GHCN':
 
-  # Check if the compiled daily data exists
-  matching_compiled_daily_files = glob.glob(COMPILED_DAILY_TEMPERATURE_FILE_REJEX)
+    return ghcn.get_files()
 
-  TEMPERATURES_FILE_PATH = ""
+  elif NETWORK == 'USHCN':
 
-  # The compiled daily data file was found
-  if len(matching_compiled_daily_files):
+    return ushcn.get_files()
 
-    TEMPERATURES_FILE_PATH = matching_compiled_daily_files[0]
+  elif NETWORK == 'USCRN':
 
-    print(f"\n{check_mark} Found '{COMPILED_DAILY_TEMPERATURE_FILE_REJEX}'")
-
-    print(f"  {check_mark} {TEMPERATURES_FILE_PATH}\n")
-
-  # If the compiled daily data doesn't exist
-  else:
-
-    # Get the latest daily version
-    DAILY_VERSION = get_daily_version()
-
-    print(f"\n{attention_mark} Missing '{COMPILED_DAILY_TEMPERATURE_FILE_REJEX}'")
-
-    # Check if the folder of daily station files has already been extracted
-    matching_extracted_daily_folder = glob.glob(os.path.join('.', EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME))
-
-    # If so, use it when compiling the daily data
-    if len(matching_extracted_daily_folder):
-
-      print(f"  {check_mark} Found '{EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME}'\n")
-
-    # If not, download and extract the daily data
-    else:
-
-      matching_gzipped_files = glob.glob(DAILY_TEMPERATURE_FILE_NAME)
-
-      # If the zipped file does not exist, download and extract the daily station data
-      if not len(matching_gzipped_files):
-
-        download_if_needed(DAILY_TEMPERATURE_FILE_NAME, DAILY_TEMPERATURE_URL)
-
-      # If the zipped file already exists, extract it
-      else:
-
-        print(f"  {check_mark} Found '{DAILY_TEMPERATURE_FILE_NAME}', extracting... (this could take a while)\n")
-
-        ghcnd_data = tarfile.open(DAILY_TEMPERATURE_FILE_NAME, mode="r|gz")
-
-        ghcnd_data.extractall()
-      
-
-    # Compile the extracted files into a GHCNm-like TAVG file
-    TEMPERATURES_FILE_PATH = daily.compile_daily_data(DAILY_VERSION, EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME)
-
-  # Return the file paths
-  return STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH
-
+    return uscrn.get_files()

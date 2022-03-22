@@ -9,6 +9,10 @@ import numpy as np
 import os
 import download
 
+from networks import ghcn
+from networks import ushcn
+from networks import uscrn
+
 country_code_df = False
 
 land_mask = {}
@@ -27,122 +31,50 @@ def read_land_mask():
   global land_mask
   land_mask = pd.read_stata(download.LAND_MASK_FILE_NAME)
 
-def get_ushcn_stations():
+# def get_ushcn_stations():
 
-  ushcn_station_metadata_file_url = download.get_ushcn_metadata_file_name()
+#   ushcn_station_metadata_file_url = download.get_ushcn_metadata_file_name()
 
-  dtypes = {
-    'station_id': np.object,
-  }
+#   dtypes = {
+#     'station_id': np.object,
+#   }
 
-  # Name our columns
-  names = ['station_id']
+#   # Name our columns
+#   names = ['station_id']
 
-  colspecs = [(0,12)]
+#   colspecs = [(0,12)]
 
-  ushcn_stations = pd.read_fwf(
-    ushcn_station_metadata_file_url, 
-    colspecs=colspecs, 
-    names=names, 
-    dtype=dtypes, 
-    header=None, 
-    encoding='utf-8', 
-  )
+#   ushcn_stations = pd.read_fwf(
+#     ushcn_station_metadata_file_url, 
+#     colspecs=colspecs, 
+#     names=names, 
+#     dtype=dtypes, 
+#     header=None, 
+#     encoding='utf-8', 
+#   )
 
-  if VERSION == "v3":
-    ushcn_stations['station_id'] = ushcn_stations['station_id'].str.replace("USH", '425').astype(str)
+#   if VERSION == "v3":
+#     ushcn_stations['station_id'] = ushcn_stations['station_id'].str.replace("USH", '425').astype(str)
 
-  ushcn_stations = ushcn_stations.set_index('station_id')
+#   ushcn_stations = ushcn_stations.set_index('station_id')
 
-  return ushcn_stations
+#   return ushcn_stations
 
 # Read the station file, parse it into a usable table, and join relevant information
 def get_stations(station_file_name, country_codes_file_name):
 
-  # Specify the datatypes of each station metadata column
-  dtypes = {
-    'station_id': np.object,
-    'latitude': np.float64,
-    'longitude': np.float64,
-    'elevation': np.float64,
-    'name': np.object
-  }
-
-  # Name our columns
-  names = ['country_code', 'station_id', 'latitude', 'longitude', 'elevation', 'name']
-
-  # Specify how many characters needed to separate data in the station text metadata
-  colspecs = []
-
   if NETWORK == 'GHCN':
 
-    if VERSION == "v3":
-
-      names = ['country_code', 'station_id',  'latitude', 'longitude', 'elevation', 'name', 'popcls', 'popcss']
-      colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68), (73, 74), (106,107)]
-      dtypes['country_code'] = "int64"
-
-    elif VERSION == "v4":
-
-      colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
-      dtypes['country_code'] = "object"
-
-    elif VERSION == "daily":
-
-      colspecs = [(0,2), (0,12), (12,20), (21,30), (31,37), (41,71)]
-      dtypes['country_code'] = "object"
+    stations = ghcn.get_stations(station_file_name, country_codes_file_name)
 
   elif NETWORK == 'USHCN':
 
-    if VERSION == 'v2.5':
+    stations = ushcn.get_stations(station_file_name)
 
-      names.append('state')
-      colspecs = [(0,2), (0,11), (12,20), (21,30), (32,37), (41,71), (38, 40)]
-      dtypes['country_code'] = "object"
+  elif NETWORK == 'USCRN':
 
-  stations = []
+    stations = uscrn.get_stations(station_file_name)
 
-  if NETWORK == 'USCRN':
-
-    names = [ 'station_id', 'country_code', 'state', 'LOCATION', 'VECTOR', 'name', 'latitude', 'longitude', 'elevation', 'STATUS', 'COMMISSIONING', 'CLOSING', 'OPERATION', 'PAIRING', 'network', 'other_station_id' ]
-    # names=names,
-
-    stations = pd.read_csv(
-      station_file_name, 
-      sep="\t",
-      names = names,
-      header=None,
-      skiprows=[0],
-      encoding='utf-8', 
-    ).reset_index()
-
-    stations['station_id'] = 'USCRN' + stations['station_id'].astype('str').apply(lambda s: str(s).rjust(6, '0') )
-
-    stations = stations[['country_code', 'station_id', 'latitude', 'longitude', 'elevation', 'name', 'state']]
-
-  else:
-
-    # Read the station file, and parse it into a usable table
-    stations = pd.read_fwf(
-      station_file_name, 
-      colspecs=colspecs, 
-      names=names, 
-      dtype=dtypes, 
-      header=None, 
-      encoding='utf-8', 
-    )
-
-  # If using the GHCN network, merge the station data with their associated country names
-
-  if NETWORK == 'GHCN':
-
-    stations = merge_with_country_names(stations, country_codes_file_name)
-
-  elif NETWORK == 'USHCN':
-
-    stations['country'] = 'United States of America'
-
-  # Set the index of the station table to the station_id for easier access
   stations = stations.set_index('station_id')
 
   # After dividing the world into grid boxes by latitude and longitude, assign each station to a grid box and save the grid box label to the stations table
@@ -166,51 +98,53 @@ def get_stations(station_file_name, country_codes_file_name):
     POPCSS: population class as determined by Satellite night lights 
      (C=Urban, B=Suburban, A=Rural)
   '''
-  if SURROUNDING_CLASS == 'rural' and VERSION == 'v3':
+  if VERSION == 'v3':
 
-    gridded_stations = gridded_stations[
-      (gridded_stations['popcls'] == 'R') & 
-      (gridded_stations['popcss'] == 'A')
-    ]
+    if SURROUNDING_CLASS == 'rural':
 
-  elif SURROUNDING_CLASS == 'suburban' and VERSION == 'v3':
-
-    # Select all stations which are not fully rural and not fully urban
-    gridded_stations = gridded_stations[
-      ~(
-        (gridded_stations['popcls'] == 'U') & 
-        (gridded_stations['popcss'] == 'C')
-      ) & 
-      ~(
+      gridded_stations = gridded_stations[
         (gridded_stations['popcls'] == 'R') & 
         (gridded_stations['popcss'] == 'A')
-      )
-    ]
+      ]
 
-  elif SURROUNDING_CLASS == 'rural and suburban' and VERSION == 'v3':
+    elif SURROUNDING_CLASS == 'suburban':
 
-    gridded_stations = gridded_stations[
-      ~(
+      # Select all stations which are not fully rural and not fully urban
+      gridded_stations = gridded_stations[
+        ~(
+          (gridded_stations['popcls'] == 'U') & 
+          (gridded_stations['popcss'] == 'C')
+        ) & 
+        ~(
+          (gridded_stations['popcls'] == 'R') & 
+          (gridded_stations['popcss'] == 'A')
+        )
+      ]
+
+    elif SURROUNDING_CLASS == 'rural and suburban':
+
+      gridded_stations = gridded_stations[
+        ~(
+          (gridded_stations['popcls'] == 'U') & 
+          (gridded_stations['popcss'] == 'C')
+        )
+      ]
+      
+    elif SURROUNDING_CLASS == 'suburban and urban':
+
+      gridded_stations = gridded_stations[
+        ~(
+          (gridded_stations['popcls'] == 'R') & 
+          (gridded_stations['popcss'] == 'A')
+        )
+      ]
+
+    elif SURROUNDING_CLASS == 'urban':
+
+      gridded_stations = gridded_stations[
         (gridded_stations['popcls'] == 'U') & 
         (gridded_stations['popcss'] == 'C')
-      )
-    ]
-    
-  elif SURROUNDING_CLASS == 'suburban and urban' and VERSION == 'v3':
-
-    gridded_stations = gridded_stations[
-      ~(
-        (gridded_stations['popcls'] == 'R') & 
-        (gridded_stations['popcss'] == 'A')
-      )
-    ]
-
-  elif SURROUNDING_CLASS == 'urban' and VERSION == 'v3':
-
-    gridded_stations = gridded_stations[
-      (gridded_stations['popcls'] == 'U') & 
-      (gridded_stations['popcss'] == 'C')
-    ]
+      ]
 
   # Limit data to only USHCN Data
   if ONLY_USHCN and VERSION == 'v3':
@@ -264,10 +198,6 @@ def limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations):
   ]
 
   return subset_of_gridded_stations_and_country_name
-
-
-
-  # gridded_stations_and_country_name.loc[gridded_stations_and_country_name['station_id'] in ushcn_stations['station_id']]
 
 
 # For add the associated country name to the station metadata

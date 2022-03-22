@@ -20,7 +20,7 @@ import output
 t0 = time.perf_counter()
 
 # Check if files exist and if not, download them
-STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH = download.download_data()
+STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH = download.get_files()
 
 # Show the Developer the settings they've chosen
 output.print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
