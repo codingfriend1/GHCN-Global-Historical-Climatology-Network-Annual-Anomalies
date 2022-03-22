@@ -482,7 +482,7 @@ def download_data():
 
         if NETWORK == 'USCRN':
 
-          TEMPERATURES_FILE_PATH = download_and_compile_uscrn_data()
+          TEMPERATURES_FILE_PATH = download_and_compile_uscrn_data(TEMPERATURE_BUNDLE)
 
         else:
           

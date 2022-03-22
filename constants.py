@@ -53,8 +53,8 @@ ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 PRINT_STATION_ANOMALIES = False
 
 # The range to consider when calculating trends for console output, does not effect excel results
-ABSOLUTE_START_YEAR = 1900 # Inclusive
-ABSOLUTE_END_YEAR = 2000 # Non-inclusive
+ABSOLUTE_START_YEAR = 2000 # Inclusive
+ABSOLUTE_END_YEAR = 2021 # Non-inclusive
 
 # How many months does each year of data need to include to accept that row of data
 MONTHS_REQUIRED_EACH_YEAR = 12
