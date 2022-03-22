@@ -186,99 +186,82 @@ def parse_daily_row(unparsed_row):
 
     return False
 
-def gather_daily_station_files(FOLDER_WITH_DAILY_DATA):
+def gather_station_files(FOLDER_WITH_DAILY_DATA):
 
   # Find all station data files in folder
-  daily_station_files = []
+  station_files = []
 
   all_stations = os.listdir(FOLDER_WITH_DAILY_DATA)
 
   # Create an array of all our .dly station file URLs
   for station_file_url in all_stations:
-    if 'dly' in station_file_url:
-      daily_station_files.append(os.path.join(FOLDER_WITH_DAILY_DATA, station_file_url))
+    if 'CRN' in station_file_url and station_file_url.endswith('.txt'):
+      station_files.append(os.path.join(FOLDER_WITH_DAILY_DATA, station_file_url))
 
-  return daily_station_files
+  return station_files
 
-def compile_daily_data(DAILY_VERSION, FOLDER_WITH_DAILY_DATA):
+def convert_to_hundreds(tavg):
+
+  if math.isnan(tavg):
+
+    return math.nan
+
+  elif tavg == -9999.0:
+
+    return -9999
+
+  else:
+
+    return int(normal_round(tavg * 100))
+
+def compile_uscrn_data(VERSION, FOLDER_WITH_DAILY_DATA):
 
   # Prepare our mega file to save all combined station temperatures too
-  OUTPUT_FILE_URL = f"./ghcnd.tavg.{DAILY_VERSION}.qcu.dat"
+  OUTPUT_FILE_URL = f"./uscrn.tavg.{VERSION}.dat"
 
   if os.path.exists(OUTPUT_FILE_URL):
     
     os.remove(OUTPUT_FILE_URL)
 
-  print(f"Compiling daily data into a GHCNm-like monthly TAVG file to be named '{OUTPUT_FILE_URL}'\n")
+  print(f"\nCompiling USCRN data into a GHCNm-like monthly TAVG file to be named '{OUTPUT_FILE_URL}'\n")
 
   # Prepare the file for editing
   OUTPUT_CONTENT = open(OUTPUT_FILE_URL, 'a')
 
-  daily_station_files = gather_daily_station_files(FOLDER_WITH_DAILY_DATA)
+  station_files = gather_station_files(FOLDER_WITH_DAILY_DATA)
 
-  total_stations = len(daily_station_files)
+  total_stations = len(station_files)
 
   station_iterator = 0
 
   # For each daily station file
-  for station_file_url in daily_station_files:
+  for station_file_url in station_files:
 
     station_iterator += 1
 
     print(f"Composing station {station_iterator} of {total_stations}")
 
-    # Read the station file. We will manually parse each line instead of relying on colspecs to improve performance
-    station_daily_values = pd.read_csv(station_file_url, header=None)
+    names = [ 'station_id', 'year', 'month', 'tavg' ]
 
-    # Prepare our columns
-    columns = [ 'station_id', 'year', 'month', 'element' ]
+    colspecs = [ (0,5), (6,10), (10, 12), (56,64) ]
 
-    for day in range(DAYS_IN_MONTH):
+    station_daily_values = pd.read_fwf(station_file_url, names = names, colspecs=colspecs)
 
-      columns.append('value' + str(day + 1))
+    # Convert each tavg into an int
+    station_daily_values['tavg'] = station_daily_values['tavg'].apply(convert_to_hundreds).astype('Int64')
 
-    # Prepare to combine all parsed lines into one array
-    parsed_lines = []
+    station_daily_values['station_id'] = 'USCRN' + station_daily_values['station_id'].astype('str').apply(lambda s: str(s).rjust(6, '0') )
 
-    # Manually parse each line of the station data
-    for file_row in station_daily_values.values:
-
-      parsed_row = parse_daily_row(file_row[0])
-
-      if parsed_row:
-
-        parsed_lines.append(parsed_row)
-
-    # Convert the parsed file rows into a dataframe
-    station_temperature_data = pd.DataFrame(parsed_lines, columns=columns)
-
-    # Average daily values for Each (Year, Month, Element) combo
-    # We multiply each temperature by 10 to keep it consistent with GHCNm
-    station_temperature_data['average'] = station_temperature_data.iloc[:,3:].mean(
-      axis=1, 
-      skipna=True, 
-      level=None, 
-      numeric_only=True
-    ).apply(lambda d : d if math.isnan(d) else int(normal_round(d * 10))).astype('Int64')
-
-    # Since we now have the averages of all days, we no longer need the daily values, so drop them
-    station_temperature_data.drop(station_temperature_data.columns[3:34], axis=1, inplace=True)
-
-    # Transform vertical month columns to horizontal row columns on the year and average TMAX and TMIN averages to combine them
-    station_temperature_data = station_temperature_data.pivot_table(
-      index=["station_id", "year"], 
-      columns='month', 
-      values='average', 
-      fill_value=math.nan, 
-      aggfunc=average_tmax_and_tmin, 
-      dropna=False
-    ).astype('Int64').reset_index()
+    # Convert the vertical months, into horizontal ones across each year
+    station_daily_values = station_daily_values.pivot(
+      index=['station_id', 'year'], columns='month', values='tavg'
+    ).reset_index()
 
     # If the file has 12 columns, one for each month
-    if len(station_temperature_data.columns) == 14 and len(station_temperature_data.values) > 1:
+    if len(station_daily_values.columns) == 14 and len(station_daily_values.values) > 1:
 
       # For each row in the station's data
-      for year, row in station_temperature_data.iterrows():
+      for year, row in station_daily_values.iterrows():
 
         # Create a representative string line to save in the output file
         output_row_string = f"\n{row['station_id']}{row['year']}TAVG"
@@ -291,6 +274,6 @@ def compile_daily_data(DAILY_VERSION, FOLDER_WITH_DAILY_DATA):
         # Add the representative line to the output file
         OUTPUT_CONTENT.write(output_row_string)
 
-  print(f"\n{check_mark} Daily station data compiled into '{OUTPUT_FILE_URL}'\n")
+  print(f"\n{check_mark} USCRN station data compiled into '{OUTPUT_FILE_URL}'\n")
 
   return OUTPUT_FILE_URL

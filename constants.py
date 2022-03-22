@@ -6,20 +6,42 @@
 import datetime
 import math
 
-# Which version of GHCNm to work with
-VERSION = 'v3' #v3, v4, daily
+# Network
+'''
+  Which network of data do you wish to work with ('GHCN', 'USHCN', 'USCRN')
 
-# Which Quality Controlled dataset to work with, adjusted or unadjusted
-QUALITY_CONTROL_DATASET = "qcu" #qca, qcf
+  GHCN - Global Historical Climatology Network
+  USHCN - U.S. Historical Climatology Network
+  USCRN - U.S. Climate Reference Network
+
+'''
+NETWORK = "USCRN"
+
+'''
+  Which version of the network to work with
+
+  For GHCN - 'v3', 'v4', 'daily'
+  For USHCN - 'v1', 'v2', 'v2.5'
+'''
+VERSION = 'v1'
+
+'''
+  Which Quality Controlled dataset of the network to work with
+
+  For GHCN v3 - 'qcu', 'qca'
+  For GHCN v4 - 'qcu', 'qcf'
+  For USHCN v2.5 - 'raw', 'tob', 'FLs'
+'''
+QUALITY_CONTROL_DATASET = "monthly01"
 
 # Earliest year you want to consider in the data
-YEAR_RANGE_START = 1851
+YEAR_RANGE_START = 1990
 
 # Leave blank if you wish to use a rolling average
-REFERENCE_START_YEAR = 1961
+REFERENCE_START_YEAR = 2000
 
 # Number of years to consider in the reference average
-REFERENCE_RANGE = 30
+REFERENCE_RANGE = 20
 
 # Whether to purge all readings with Quality Control, Data Measurement, or Data Source flags
 PURGE_FLAGS = False

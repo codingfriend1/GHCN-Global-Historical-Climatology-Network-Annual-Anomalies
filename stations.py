@@ -69,41 +69,84 @@ def get_stations(station_file_name, country_codes_file_name):
   }
 
   # Name our columns
-  names = ['country_code','station_id', 'latitude','longitude','elevation','name']
+  names = ['country_code', 'station_id', 'latitude', 'longitude', 'elevation', 'name']
 
   # Specify how many characters needed to separate data in the station text metadata
   colspecs = []
 
-  if VERSION == "v3":
-    names = ['country_code','station_id', 'latitude','longitude','elevation','name', 'popcls', 'popcss']
+  if NETWORK == 'GHCN':
 
-    colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68), (73, 74), (106,107)]
-    dtypes['country_code'] = "int64"
-  elif VERSION == "v4":
-    colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
-    dtypes['country_code'] = "object"
-  elif VERSION in ["daily", "test"]:
-    colspecs = [(0,2), (0,12), (12,20), (21,30), (31,37), (41,71)]
-    dtypes['country_code'] = "object"
+    if VERSION == "v3":
 
-  # Read the station file, and parse it into a usable table
-  stations = pd.read_fwf(
-    station_file_name, 
-    colspecs=colspecs, 
-    names=names, 
-    dtype=dtypes, 
-    header=None, 
-    encoding='utf-8', 
-  )
+      names = ['country_code', 'station_id',  'latitude', 'longitude', 'elevation', 'name', 'popcls', 'popcss']
+      colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68), (73, 74), (106,107)]
+      dtypes['country_code'] = "int64"
 
-  # Merge the station data with their associated country names
-  stations_and_country_name = merge_with_country_names(stations, country_codes_file_name)
+    elif VERSION == "v4":
+
+      colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
+      dtypes['country_code'] = "object"
+
+    elif VERSION == "daily":
+
+      colspecs = [(0,2), (0,12), (12,20), (21,30), (31,37), (41,71)]
+      dtypes['country_code'] = "object"
+
+  elif NETWORK == 'USHCN':
+
+    if VERSION == 'v2.5':
+
+      names.append('state')
+      colspecs = [(0,2), (0,11), (12,20), (21,30), (32,37), (41,71), (38, 40)]
+      dtypes['country_code'] = "object"
+
+  stations = []
+
+  if NETWORK == 'USCRN':
+
+    names = [ 'station_id', 'country_code', 'state', 'LOCATION', 'VECTOR', 'name', 'latitude', 'longitude', 'elevation', 'STATUS', 'COMMISSIONING', 'CLOSING', 'OPERATION', 'PAIRING', 'network', 'other_station_id' ]
+    # names=names,
+
+    stations = pd.read_csv(
+      station_file_name, 
+      sep="\t",
+      names = names,
+      header=None,
+      skiprows=[0],
+      encoding='utf-8', 
+    ).reset_index()
+
+    stations['station_id'] = 'USCRN' + stations['station_id'].astype('str').apply(lambda s: str(s).rjust(6, '0') )
+
+    stations = stations[['country_code', 'station_id', 'latitude', 'longitude', 'elevation', 'name', 'state']]
+
+  else:
+
+    # Read the station file, and parse it into a usable table
+    stations = pd.read_fwf(
+      station_file_name, 
+      colspecs=colspecs, 
+      names=names, 
+      dtype=dtypes, 
+      header=None, 
+      encoding='utf-8', 
+    )
+
+  # If using the GHCN network, merge the station data with their associated country names
+
+  if NETWORK == 'GHCN':
+
+    stations = merge_with_country_names(stations, country_codes_file_name)
+
+  elif NETWORK == 'USHCN':
+
+    stations['country'] = 'United States of America'
 
   # Set the index of the station table to the station_id for easier access
-  stations_and_country_name = stations_and_country_name.set_index('station_id')
+  stations = stations.set_index('station_id')
 
   # After dividing the world into grid boxes by latitude and longitude, assign each station to a grid box and save the grid box label to the stations table
-  gridded_stations_and_country_name = set_station_grid_cells(stations_and_country_name)
+  gridded_stations = set_station_grid_cells(stations)
 
   read_land_mask()
 
@@ -125,48 +168,48 @@ def get_stations(station_file_name, country_codes_file_name):
   '''
   if SURROUNDING_CLASS == 'rural' and VERSION == 'v3':
 
-    gridded_stations_and_country_name = gridded_stations_and_country_name[
-      (gridded_stations_and_country_name['popcls'] == 'R') & 
-      (gridded_stations_and_country_name['popcss'] == 'A')
+    gridded_stations = gridded_stations[
+      (gridded_stations['popcls'] == 'R') & 
+      (gridded_stations['popcss'] == 'A')
     ]
 
   elif SURROUNDING_CLASS == 'suburban' and VERSION == 'v3':
 
     # Select all stations which are not fully rural and not fully urban
-    gridded_stations_and_country_name = gridded_stations_and_country_name[
+    gridded_stations = gridded_stations[
       ~(
-        (gridded_stations_and_country_name['popcls'] == 'U') & 
-        (gridded_stations_and_country_name['popcss'] == 'C')
+        (gridded_stations['popcls'] == 'U') & 
+        (gridded_stations['popcss'] == 'C')
       ) & 
       ~(
-        (gridded_stations_and_country_name['popcls'] == 'R') & 
-        (gridded_stations_and_country_name['popcss'] == 'A')
+        (gridded_stations['popcls'] == 'R') & 
+        (gridded_stations['popcss'] == 'A')
       )
     ]
 
   elif SURROUNDING_CLASS == 'rural and suburban' and VERSION == 'v3':
 
-    gridded_stations_and_country_name = gridded_stations_and_country_name[
+    gridded_stations = gridded_stations[
       ~(
-        (gridded_stations_and_country_name['popcls'] == 'U') & 
-        (gridded_stations_and_country_name['popcss'] == 'C')
+        (gridded_stations['popcls'] == 'U') & 
+        (gridded_stations['popcss'] == 'C')
       )
     ]
     
   elif SURROUNDING_CLASS == 'suburban and urban' and VERSION == 'v3':
 
-    gridded_stations_and_country_name = gridded_stations_and_country_name[
+    gridded_stations = gridded_stations[
       ~(
-        (gridded_stations_and_country_name['popcls'] == 'R') & 
-        (gridded_stations_and_country_name['popcss'] == 'A')
+        (gridded_stations['popcls'] == 'R') & 
+        (gridded_stations['popcss'] == 'A')
       )
     ]
 
   elif SURROUNDING_CLASS == 'urban' and VERSION == 'v3':
 
-    gridded_stations_and_country_name = gridded_stations_and_country_name[
-      (gridded_stations_and_country_name['popcls'] == 'U') & 
-      (gridded_stations_and_country_name['popcss'] == 'C')
+    gridded_stations = gridded_stations[
+      (gridded_stations['popcls'] == 'U') & 
+      (gridded_stations['popcss'] == 'C')
     ]
 
   # Limit data to only USHCN Data
@@ -174,7 +217,7 @@ def get_stations(station_file_name, country_codes_file_name):
 
     ushcn_stations = get_ushcn_stations()
 
-    gridded_stations_and_country_name = limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations)
+    gridded_stations = limit_stations_to_ushcn(gridded_stations, ushcn_stations)
 
   if USE_COUNTRY and VERSION == 'v3':
 
@@ -182,12 +225,12 @@ def get_stations(station_file_name, country_codes_file_name):
 
     if UPPERCASE_COUNTRY_NAME != 'ARTIC':
 
-      gridded_stations_and_country_name = gridded_stations_and_country_name[
-        gridded_stations_and_country_name['country'].str.contains(UPPERCASE_COUNTRY_NAME)
+      gridded_stations = gridded_stations[
+        gridded_stations['country'].str.contains(UPPERCASE_COUNTRY_NAME)
       ]
     else:
-      gridded_stations_and_country_name = gridded_stations_and_country_name[
-        gridded_stations_and_country_name['latitude'] >= ARTIC_CIRCLE_LATITUDE
+      gridded_stations = gridded_stations[
+        gridded_stations['latitude'] >= ARTIC_CIRCLE_LATITUDE
       ]
 
   if IN_COUNTRY and VERSION == 'v3':
@@ -196,21 +239,21 @@ def get_stations(station_file_name, country_codes_file_name):
 
     if 'ARTIC' in UPPERCASE_COUNTRIES:
 
-      gridded_stations_and_country_name = gridded_stations_and_country_name.loc[
-        (gridded_stations_and_country_name['country'].isin(UPPERCASE_COUNTRIES)) | 
-        (gridded_stations_and_country_name['latitude'] >= ARTIC_CIRCLE_LATITUDE)
+      gridded_stations = gridded_stations.loc[
+        (gridded_stations['country'].isin(UPPERCASE_COUNTRIES)) | 
+        (gridded_stations['latitude'] >= ARTIC_CIRCLE_LATITUDE)
       ]
       
     else:
 
-      gridded_stations_and_country_name = gridded_stations_and_country_name.loc[
-        gridded_stations_and_country_name['country'].isin(UPPERCASE_COUNTRIES)
+      gridded_stations = gridded_stations.loc[
+        gridded_stations['country'].isin(UPPERCASE_COUNTRIES)
       ]
 
-  print(gridded_stations_and_country_name)
+  print(gridded_stations)
 
   # Return our parsed and joined table
-  return gridded_stations_and_country_name
+  return gridded_stations
 
 def limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations):
 
@@ -316,16 +359,27 @@ def get_country_name_from_code(country_code):
 # Return the name and country for a provided station_id
 def get_station_address(station_id, stations):
 
-  station_row = stations.loc[[station_id], ['name', 'country']].to_numpy()[0]
+  station_row = []
+
+  if NETWORK == 'GHCN':
+
+    station_row = stations.loc[[station_id], ['name', 'country']].to_numpy()[0]
+
+  elif NETWORK in ['USHCN', 'USCRN']:
+
+    station_row = stations.loc[[station_id], ['name', 'state']].to_numpy()[0]
 
   if not len(station_row):
+    
     return 'Unknown'
 
   station_name = " ".join([x[0].upper() + x[1:] for x in station_row[0].lower().split("_")])
 
-  station_country = station_row[1]
+  station_province = station_row[1]
 
-  return f"{station_name}, {station_country}"
+  return f"{station_name}, {station_province}"
+
+  
 
 # Get the grid label of the station's assigned grid box
 def get_station_gridbox(station_id, stations):

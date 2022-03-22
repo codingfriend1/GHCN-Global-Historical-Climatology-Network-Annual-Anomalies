@@ -19,6 +19,14 @@
   USHCN
   https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/readme.txt
   https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt
+  https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.raw.tar.gz
+  https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.tob.tar.gz
+  https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.FLs.52j.tar.gz
+
+  USCRN
+  https://www.ncei.noaa.gov/pub/data/uscrn/products/monthly01/readme.txt
+  https://www.ncei.noaa.gov/pub/data/uscrn/products/stations.tsv
+  https://www.ncei.noaa.gov/pub/data/uscrn/products/monthly01/
 
   Land / Water Ratio per Grid Quadrant
   https://drive.google.com/file/d/1nSDlTfMbyquCQflAvScLM6K4dvgQ7JBj/view
@@ -38,32 +46,125 @@ import urllib.request
 import tarfile
 import glob
 import os
+from bs4 import BeautifulSoup
 from google_drive_downloader import GoogleDriveDownloader as gdd
 from termcolor import colored, cprint
 import daily
+import uscrn
 
-EXTRACTED_FILES = []
+DOWNLOADABLES = {
+  
+  'GHCN': {
 
-# Country Codes File and URL
+    'v3': {
 
-COUNTRY_CODES_FILE_NAME = 'country-codes' if VERSION == 'v3' else 'ghcnm-countries.txt'
+      'countries': {
+        'file_name': 'country-codes',
+        'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/country-codes'
+      },
 
-COUNTRY_CODES_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/{COUNTRY_CODES_FILE_NAME}"
+      'quality_adjusted_version': {
 
+        'qcu': {
+          'file_name': f"ghcnm.v3*/*qcu.*",
+          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qcu.tar.gz',
+          'expected_count': 2
+        },
 
-# Station metadata and temperature data URL
+        'qca': {
+          'file_name': f"ghcnm.v3*/*qca.*",
+          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qca.tar.gz',
+          'expected_count': 2
+        }
 
-UNADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.qcu.tar.gz"
+      }
 
-ADJUSTED_ACRONYM = "qca" if VERSION == 'v3' else "qcf"
+    },
 
-ADJUSTED_TAVG_LATEST_URL = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/{VERSION}/ghcnm.tavg.latest.{ADJUSTED_ACRONYM}.tar.gz"
+    'v4': {
 
-# USHCN Stations File and URL
+      'countries': {
+        'file_name': 'ghcnm-countries.txt',
+        'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm-countries.txt'
+      },
 
-USHCN_STATION_METADATA_FILE_NAME = 'ushcn-v2.5-stations.txt'
+      'quality_adjusted_version': {
 
-USHCN_STATIONS_WEB_URL = 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
+        'qcu': {
+          'file_name': f"ghcnm.v4*/*qcu.*",
+          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcu.tar.gz',
+          'expected_count': 2
+        },
+
+        'qcf': {
+          'file_name': f"ghcnm.v4*/*qcf.*",
+          'url': 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/ghcnm.tavg.latest.qcf.tar.gz',
+          'expected_count': 2
+        }
+
+      }
+
+    },
+
+  },
+
+  'USHCN': {
+
+    'v2.5': {
+
+      'stations': {
+        'file_name': 'ushcn-v2.5-stations.txt',
+        'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn-v2.5-stations.txt'
+      },
+
+      'quality_adjusted_version': {
+
+        'raw': {
+          'file_name': 'ushcn.v2.5*/*.raw.tavg',
+          'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.raw.tar.gz'
+        },
+
+        'tob': {
+          'file_name': 'ushcn.v2.5*/*.tob.tavg',
+          'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.tob.tar.gz'
+        },
+
+        'FLs': {
+          'file_name': 'ushcn.v2.5*/*.FLs*.tavg',
+          'url': 'https://www.ncei.noaa.gov/pub/data/ushcn/v2.5/ushcn.tavg.latest.FLs.52j.tar.gz'
+        }
+
+      },
+
+    }
+
+  },
+
+  'USCRN': {
+
+    'v1': {
+
+      'stations': {
+        'file_name': 'stations.tsv',
+        'url': 'https://www.ncei.noaa.gov/pub/data/uscrn/products/stations.tsv'
+      },
+
+      'quality_adjusted_version': {
+
+        'monthly01': {
+          'file_name': 'monthly01',
+          'folder_name': 'uscrn_stations_v1',
+          'compiled_file': 'uscrn.tavg.v1.dat',
+          'url': 'https://www.ncei.noaa.gov/pub/data/uscrn/products/monthly01/'
+        }
+
+      }
+
+    }
+    
+  }
+
+}
 
 # Landmask data 
 
@@ -174,6 +275,7 @@ def download_if_needed(file_name, url, expected_count = 1):
       # Return the file
       return file_name
 
+
 def download_landmask_data_if_needed():
 
   if not os.path.exists(LAND_MASK_FILE_NAME):
@@ -195,69 +297,206 @@ def download_landmask_data_if_needed():
   return LAND_MASK_FILE_NAME
 
 
-def validate_constants():
+def get_correct_bundles(NETWORK, VERSION, QUALITY_CONTROL_DATASET):
 
-  # Validate VERSION and QUALITY_CONTROL_DATASET
+  STATIONS_BUNDLE = False
+  COUNTRIES_BUNDLE = False
+  TEMPERATURE_BUNDLE = False
 
-  if VERSION == 'v4' and not QUALITY_CONTROL_DATASET in ['qcu', 'qce', 'qcf']:
+  if NETWORK in DOWNLOADABLES:
 
-    print("\nFor Version 4 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted), or 'qcf' (quality-control adjusted).")
+    NETWORK_DOWNLOADABLES = DOWNLOADABLES[NETWORK]
 
-    print('See this readme file to decide which one to use: https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt\n')
+    if VERSION in NETWORK_DOWNLOADABLES:
+
+      NETWORK_VERSION_DOWNLOADABLES = NETWORK_DOWNLOADABLES[VERSION]
+
+      STATIONS_BUNDLE = NETWORK_VERSION_DOWNLOADABLES['stations'] if 'stations' in NETWORK_VERSION_DOWNLOADABLES else False
+
+      COUNTRIES_BUNDLE = NETWORK_VERSION_DOWNLOADABLES['countries'] if 'countries' in NETWORK_VERSION_DOWNLOADABLES else False
+
+      if QUALITY_CONTROL_DATASET in NETWORK_VERSION_DOWNLOADABLES['quality_adjusted_version']:
+
+        TEMPERATURE_BUNDLE = NETWORK_VERSION_DOWNLOADABLES['quality_adjusted_version'][QUALITY_CONTROL_DATASET]
+
+      else:
+
+        QUALITY_DATASET_CHOICES = NETWORK_VERSION_DOWNLOADABLES['quality_adjusted_version'].keys()
+
+        print(f"Sorry, but version '{QUALITY_CONTROL_DATASET}' is not supported in network '{NETWORK} {VERSION}'. Please use one of:")
+        print(f"  " + "\n  ".join(QUALITY_DATASET_CHOICES))
+
+        quit()
+
+    else:
+
+      version_choices = NETWORK_DOWNLOADABLES.keys()
+
+      print(f"Sorry, but version '{VERSION}' is not supported in network '{NETWORK}'. Please use one of:")
+      print(f"  " + "\n  ".join(version_choices))
+
+      quit()
+
+  else:
+
+    network_choices = DOWNLOADABLES.keys()
+
+    print(f"Sorry, but network '{NETWORK}' is not supported. Please use one of:")
+    print(f"  " + "\n  ".join(network_choices))
 
     quit()
 
-  elif VERSION == 'v3' and not QUALITY_CONTROL_DATASET in ['qcu', 'qca']:
 
-    print("\nFor Version 3 of GHCNm, set `QUALITY_CONTROL_DATASET` to either 'qcu' (quality-control unadjusted) or 'qca' (quality-control adjusted).")
+  return STATIONS_BUNDLE, COUNTRIES_BUNDLE, TEMPERATURE_BUNDLE
 
-    print('See this readme file to decide which one to use: https://www.ncei.noaa.gov/pub/data/ghcn/v3/README\n')
+def compile_station_files_into_dat_file(STATION_FILES):
 
-    quit()
-  elif not VERSION in ['v3', 'v4']:
+  total_stations = '{:,}'.format(len(STATION_FILES))
 
-    print("Sorry, but only GHCNm version's 3 and 4 are supported at this time. In `constants.py` please set `VERSION = 'v4'` to 'v3' or 'v4'")
+  STATION_FOLDER = STATION_FILES[0].split('/')[0]
 
-    quit()
+  OUTPUT_FILE_URL = f"{STATION_FOLDER}.{QUALITY_CONTROL_DATASET}.dat"
 
+  print(f"\n Compiling {total_stations} station files into '{OUTPUT_FILE_URL}'\n")
 
-def download_GHCN_data():
+  if os.path.exists(OUTPUT_FILE_URL):
+    
+    os.remove(OUTPUT_FILE_URL)
 
-  # Validate that the constants in `constants.py` are appropriate
-  validate_constants()
+  with open(OUTPUT_FILE_URL, "wb") as output_file:
 
-  # Download the Country Codes file for GHCNm
-  COUNTRIES_FILE_PATH = download_if_needed(COUNTRY_CODES_FILE_NAME, COUNTRY_CODES_URL)
+    for station_file_path in STATION_FILES:
 
-  # Download the GHCNm Unadjusted data if needed
-  TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
-    f"ghcnm.{VERSION}*/*qcu.*", UNADJUSTED_TAVG_LATEST_URL, expected_count = 2
-  )
+      with open(station_file_path, "rb") as station_file_contents:
 
-  # Download the GHCNm Adjusted data if needed
-  ADJUSTED_TEMPERATURES_FILE_PATH, ADJUSTED_STATION_METADATA_FILE_PATH = download_if_needed(
-    f"ghcnm.{VERSION}*/*{ADJUSTED_ACRONYM}.*", ADJUSTED_TAVG_LATEST_URL, expected_count = 2
-  )
+        output_file.write(station_file_contents.read())
 
-  # Download the USHCN Station Metadata file if needed
-  USHCN_STATION_METADATA_FILE = download_if_needed(
-    USHCN_STATION_METADATA_FILE_NAME, USHCN_STATIONS_WEB_URL
-  ) if ONLY_USHCN and VERSION == 'v3' else ''
+  return OUTPUT_FILE_URL
 
-  # Download the landmask if needed
-  download_landmask_data_if_needed()
+def download_and_compile_uscrn_data(TEMPERATURE_BUNDLE):
 
-  print()
+  TEMPERATURES_FILE_PATH = ""
 
-  # If the Developer is not using the unadjusted dataset, return the adjusted dataset
-  if QUALITY_CONTROL_DATASET != 'qcu':
+  # Check if the compiled USCRN data exists
+  matching_compiled_uscrn_files = glob.glob(TEMPERATURE_BUNDLE['compiled_file'])
 
-    TEMPERATURES_FILE_PATH = ADJUSTED_TEMPERATURES_FILE_PATH
+  # The compiled daily data file was found
+  if len(matching_compiled_uscrn_files):
 
-    STATION_FILE_PATH = ADJUSTED_STATION_METADATA_FILE_PATH
+    TEMPERATURES_FILE_PATH = matching_compiled_uscrn_files[0]
 
-  # Return the file paths
-  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH
+    print(f"\n{check_mark} Found '{TEMPERATURE_BUNDLE['compiled_file']}'")
+
+    print(f"  {check_mark} {TEMPERATURES_FILE_PATH}\n")
+
+  # If the compiled daily data doesn't exist
+  else:
+
+    print(f"\n{attention_mark} Missing '{TEMPERATURE_BUNDLE['compiled_file']}'")
+
+    # Check if the folder of USCRN station files has already been downloaded
+    matching_extracted_uscrn_files = glob.glob(os.path.join('.', TEMPERATURE_BUNDLE['folder_name'], '*'))
+
+    # If so, use it when compiling the data
+    if len(matching_extracted_uscrn_files):
+
+      print(f"\n{check_mark} Found '{TEMPERATURE_BUNDLE['folder_name']}':")
+      print(f'  {check_mark} ' + f'\n  {check_mark} '.join(matching_extracted_uscrn_files))
+
+    # If not, download the USCRN data
+    else:
+
+      station_files = []
+
+      print(f"\n{attention_mark} Missing '{TEMPERATURE_BUNDLE['folder_name']}'. Downloading from {TEMPERATURE_BUNDLE['url']}")
+
+      # Make a folder to save the USCRN station files to
+      os.mkdir(TEMPERATURE_BUNDLE['folder_name'])
+
+      # Read the link to all the station files
+      soup = BeautifulSoup(urllib.request.urlopen(TEMPERATURE_BUNDLE['url']), features="html.parser")
+
+      # Get the links for this HTML page
+      for a in soup.find_all('a'):
+
+        link = a['href']
+
+        # If the link is a CRN station .txt file:
+        if 'CRN' in link and link.endswith('.txt'):
+
+          # Join the link file name with the url
+          station_url = os.path.join(TEMPERATURE_BUNDLE['url'], link)
+
+          # Join the folder name with the file name
+          station_file_path = os.path.join(TEMPERATURE_BUNDLE['folder_name'], link)
+
+          # Download the file
+          download_from_url(station_url, station_file_path)
+
+          # Add to our station file list for displaying in the console later
+          station_files.append(station_file_path) 
+
+      print(f"\n  {check_mark} Downloaded:")
+      print(f'  {check_mark} ' + f'\n  {check_mark} '.join(station_files))
+
+    TEMPERATURES_FILE_PATH = uscrn.compile_uscrn_data(VERSION, TEMPERATURE_BUNDLE['folder_name'])
+
+  return TEMPERATURES_FILE_PATH
+
+def download_data():
+
+  if NETWORK == 'GHCN' and VERSION == 'daily':
+
+    return download_GHCN_daily_data()
+
+  else:
+
+    STATIONS_BUNDLE, COUNTRIES_BUNDLE, TEMPERATURE_BUNDLE = get_correct_bundles(
+      NETWORK, VERSION, QUALITY_CONTROL_DATASET
+    )
+
+    COUNTRIES_FILE_PATH, STATION_FILE_PATH, TEMPERATURES_FILE_PATH, TEMPERATURES_FOLDER = ("", "", "", "")
+
+    if STATIONS_BUNDLE:
+
+      STATION_FILE_PATH = download_if_needed(STATIONS_BUNDLE['file_name'], STATIONS_BUNDLE['url'])
+
+    if COUNTRIES_BUNDLE:
+
+      COUNTRIES_FILE_PATH = download_if_needed(COUNTRIES_BUNDLE['file_name'], COUNTRIES_BUNDLE['url'])
+
+    if TEMPERATURE_BUNDLE:
+
+      expected_count = TEMPERATURE_BUNDLE['expected_count'] if 'expected_count' in TEMPERATURE_BUNDLE else 1
+
+      if expected_count == 2:
+
+        TEMPERATURES_FILE_PATH, STATION_FILE_PATH = download_if_needed(
+          TEMPERATURE_BUNDLE['file_name'], TEMPERATURE_BUNDLE['url'], expected_count
+        )
+
+      # If the expected_count is not 2, then it is likely the USHCN or USCRN network in which case we will expect a folder of station files rather than a single .dat file
+      else:
+
+        STATION_FILES = []
+
+        if NETWORK == 'USCRN':
+
+          TEMPERATURES_FILE_PATH = download_and_compile_uscrn_data()
+
+        else:
+          
+          STATION_FILES = download_if_needed(
+            TEMPERATURE_BUNDLE['file_name'], TEMPERATURE_BUNDLE['url'], expected_count = 3
+          )
+
+          # Compile the station files into a single .dat file
+          TEMPERATURES_FILE_PATH = compile_station_files_into_dat_file(STATION_FILES)
+
+    download_landmask_data_if_needed()
+
+    return STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH
+
 
 def get_daily_version():
 
@@ -268,6 +507,7 @@ def get_daily_version():
   version_name = version_text[37:56]
 
   return version_name
+
 
 def download_GHCN_daily_data():
 
@@ -333,5 +573,5 @@ def download_GHCN_daily_data():
     TEMPERATURES_FILE_PATH = daily.compile_daily_data(DAILY_VERSION, EXTRACTED_DAILY_TEMPERATURE_FOLDER_NAME)
 
   # Return the file paths
-  return STATION_FILE_PATH, COUNTRIES_FILE_PATH, TEMPERATURES_FILE_PATH
+  return STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH
 

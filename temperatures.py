@@ -6,6 +6,7 @@
 from constants import *
 import pandas as pd
 import math
+import os
 
 '''
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
@@ -87,6 +88,118 @@ def get_station_start_and_end_year(temp_data_for_station):
 
   return start_year, end_year
 
+def parse_ushcn_temperature_row(unparsed_row_string):
+
+  parsed_row = []
+
+  # The first two alpha characters of the STATION_ID represent the abbreviated country code. We can use this to associate the country name with each station. In version 3, the first 3 digits represent the country code.
+  COUNTRY_CODE = str(unparsed_row_string[0:2])
+
+  # The ID to associate with the station for this row
+  STATION_ID = str(unparsed_row_string[0:11])
+
+  # The Year this row represents
+  YEAR = int(unparsed_row_string[12:16])
+
+  # Add our meta information to our parsed row
+  parsed_row.append(COUNTRY_CODE)
+  parsed_row.append(STATION_ID)
+  parsed_row.append(YEAR)
+
+  # Each month in the year requires 8 characters to fit the Temperature Reading (6 characters), Data Measurement Flag (1 character), Quality Control Flag (1 character), and Data Source Flag (1 character). We'll loop through each month counting 8 characters at a time from the character index of Jan to the ending character index of Dec.
+  START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE = 16
+  END_CHARACTER_INDEX_FOR_DEC = 124
+  NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH = 9
+
+  # For each month in the unparsed row string
+  for index in range(
+    START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE, 
+    END_CHARACTER_INDEX_FOR_DEC, 
+    NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH
+  ):
+
+    try:
+      
+      # Extract the temperature reading value for the current month and convert it to an integer
+      VALUE = int(unparsed_row_string[index:index + 6])
+
+      # If the value is -9999 (meaning it's missing) convert it to NaN for better averaging in Python and Excel
+      VALUE = VALUE if VALUE != MISSING_VALUE else math.nan
+
+      # Extract each flag associated with this temperature reading
+      DMFLAG = str(unparsed_row_string[index + 6:index + 7])
+      QCFLAG = str(unparsed_row_string[index + 7:index + 8])
+      DSFLAG = str(unparsed_row_string[index + 8:index + 9])
+
+      # Combine the temperature reading and flags into an array
+      value_set = [ VALUE, DMFLAG, QCFLAG, DSFLAG ]
+
+      # Save that array as a column for this parsed row
+      parsed_row.append(value_set)
+
+    # We don't want the program to crash if one row has a problem, so we catch the mistake, discard that row and keep moving
+    except:
+      print('Error parsing row', unparsed_row_string)
+      return False
+
+  return parsed_row
+
+def parse_uscrn_temperature_row(unparsed_row_string):
+
+  parsed_row = []
+
+  # The ID to associate with the station for this row
+  STATION_ID = str(unparsed_row_string[0:5])
+
+  # The Year this row represents
+  YEAR = int(unparsed_row_string[5:9])
+
+  # The Element is either TAVG, TMAX, or TMIN. In the dataset used here, this value is always TAVG, which is why we don't add it to our parsed row.
+  ELEMENT = unparsed_row_string[9:13]
+
+  # Add our meta information to our parsed row
+  parsed_row.append(STATION_ID)
+  parsed_row.append(YEAR)
+
+  # Each month in the year requires 8 characters to fit the Temperature Reading (5 characters), Data Measurement Flag (1 character), Quality Control Flag (1 character), and Data Source Flag (1 character). We'll loop through each month counting 8 characters at a time from the character index of Jan to the ending character index of Dec.
+  START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE = 13
+  END_CHARACTER_INDEX_FOR_DEC = 109
+  NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH = 8
+
+  # For each month in the unparsed row string
+  for index in range(
+    START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE, 
+    END_CHARACTER_INDEX_FOR_DEC, 
+    NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH
+  ):
+
+    try:
+      
+      # Extract the temperature reading value for the current month and convert it to an integer
+      VALUE = int(unparsed_row_string[index:index + 5])
+
+      # If the value is -9999 (meaning it's missing) convert it to NaN for better averaging in Python and Excel
+      VALUE = VALUE if VALUE != MISSING_VALUE else math.nan
+
+      # Extract each flag associated with this temperature reading
+      DMFLAG = str(unparsed_row_string[index + 5:index + 6])
+      QCFLAG = str(unparsed_row_string[index + 6:index + 7])
+      DSFLAG = str(unparsed_row_string[index + 7:index + 8])
+
+      # Combine the temperature reading and flags into an array
+      value_set = [ VALUE, DMFLAG, QCFLAG, DSFLAG ]
+
+      # Save that array as a column for this parsed row
+      parsed_row.append(value_set)
+
+    # We don't want the program to crash if one row has a problem, so we catch the mistake, discard that row and keep moving
+    except:
+      print('Error parsing row', unparsed_row_string)
+      return False
+
+  return parsed_row
+
+
 '''
 2.2.1 DATA FORMAT
 
@@ -118,12 +231,12 @@ def get_station_start_and_end_year(temp_data_for_station):
 
 When splitting the unparsed row string, we start each snippet of data one character index early since the first character is inclusive in programming languages, but they may end with the same character index because the final character is not inclusive
 '''
-def parse_temperature_row(unparsed_row_string):
+def parse_ghcn_temperature_row(unparsed_row_string):
 
   parsed_row = []
 
   # In version 4 of GHCNm, the first two alpha characters of the STATION_ID represent the abbreviated country code. We can use this to associate the country name with each station. In version 3, the first 3 digits represent the country code.
-  COUNTRY_CODE = str(unparsed_row_string[0:2]) if VERSION == "v4" else str(unparsed_row_string[0:3])
+  COUNTRY_CODE = str(unparsed_row_string[0:2]) if VERSION == "v4" or NETWORK == 'USCRN' else str(unparsed_row_string[0:3])
 
   # The ID to associate with the station for this row
   STATION_ID = str(unparsed_row_string[0:11])
@@ -268,7 +381,16 @@ def get_temperatures_by_station(url, STATIONS):
         continue
 
     # Split the row string into usable data columns. Monthly sets of temperatures and flags will be represented as an array ([VALUE1, DMFLAG1, QCFLAG1, DSFLAG1]) each taking up one column.
-    parsed_row = parse_temperature_row(unparsed_row_string[0])
+
+    parsed_row = False
+
+    if NETWORK in ['GHCN', 'USCRN']:
+
+      parsed_row = parse_ghcn_temperature_row(unparsed_row_string[0])
+
+    elif NETWORK == 'USHCN':
+
+      parsed_row = parse_ushcn_temperature_row(unparsed_row_string[0])
 
     if parsed_row:
 
@@ -280,7 +402,6 @@ def get_temperatures_by_station(url, STATIONS):
         # Add the parsed row to the array of the file's parsed rows
         station_parsed_file_rows.append(row_with_12_months)
         
-
   # Repeat the baseline check one final time for the last station iteration
   if contains_enough_annual_data(station_parsed_file_rows):
 

@@ -30,9 +30,11 @@ MIT License - You are welcome to use and modify your copy of this code. If I hav
 
 Settings may be adjusted in `constants.py` before running the program:
 
- - `VERSION` (`'v3'`, `'v4'`, `'daily'`) - What version of GHCN to use
+- `NETWORK` (`'GHCN'`, `'USHCN'`, `'USCRN'`) - What network do you wish to use.
 
- - `QUALITY_CONTROL_DATASET` (`'qcu`, `'qca'`, `'qcf'`) - What quality adjusted dataset to use. The unadjusted data for both `v3` and `v4` is `'qcu'`. The adjusted dataset for version 3 is `'qca'`, for version 4 it's (`'qcf'`). This field is irrevelant for `'daily'` data.
+ - `VERSION` (`'v3'`, `'v4'`, `'daily'`, `'v2.5'`, `'v1'`) - What version of the network to use, limited by the network chosen
+
+ - `QUALITY_CONTROL_DATASET` (`'qcu`, `'qca'`, `'qcf'`, `'raw'`, `'tob'`, `'Fls'`, `'monthly01'`) - Which quality control dataset to use for the chosen version of the chosen network.
 
  - `YEAR_RANGE_START` (Ex: `1851`) - The earliest year you want to consider in the data.
 
