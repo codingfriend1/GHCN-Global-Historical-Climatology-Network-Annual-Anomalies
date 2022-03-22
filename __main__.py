@@ -19,22 +19,17 @@ import output
 
 t0 = time.perf_counter()
 
-# Check if files exist and if not, download them
 STATION_FILE_PATH, TEMPERATURES_FILE_PATH, COUNTRIES_FILE_PATH = download.get_files()
 
-# Show the Developer the settings they've chosen
 output.print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH)
 
-# Parse Station metadata (.inv) into a DataFrame
 STATIONS = stations.get_stations(STATION_FILE_PATH, COUNTRIES_FILE_PATH)
 
-# Parse GHCN-M temperature data (.dat) into a DataFrame
 TEMPERATURES = temperatures.get_temperatures_by_station(TEMPERATURES_FILE_PATH, STATIONS)
 
 # "TEMPERATURES" data is grouped by station, so counting its length will tell us the total number of Stations
 TOTAL_STATIONS = len(TEMPERATURES)
 
-# Represents the current station being iterated over (useful for keeping the Developer updated in the console)
 station_iteration = 0
 
 # Our goal is to have an array of annual anomalies for every station that we can then average or grid and average
@@ -55,41 +50,28 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   # For each year, average the anomalies for all 12 months and return an list of average anomalies by year. It is ok if some months are missing data since we first converted them to anomalies before averaging.
   average_anomalies_by_year = anomaly.average_monthly_anomalies_by_year(anomalies_by_month)
 
-  # Get the station's location
   station_location = stations.get_station_address(station_id, STATIONS)
 
-  # Get the station's grid box label
   station_gridbox = stations.get_station_gridbox(station_id, STATIONS)
 
   # Add important metadata to the beginning of each station's column (station's ID, station's location, and station's grid box label). The grid box label is important if we wish to average by grid instead of by station.
-  average_anomalies_by_year_and_station_metadata = pd.concat([ pd.Series([station_id, station_location, station_gridbox]), average_anomalies_by_year ]).reset_index(drop = True)
+  average_anomalies_by_year_and_station_metadata = output.generate_column([station_id, station_location, station_gridbox], average_anomalies_by_year)
 
-  # Remember that array we created at the beginning to contain lists of annual anomalies for every station? It's no good unless we add the annual anomalies for this station to it
   annual_anomalies_by_station.append(average_anomalies_by_year_and_station_metadata)
 
-  # We make console output interesting by calculating the trend/slope of the annual anomalies for this station using least squares fitting. Values above 0 indicate a warming trend, values below zero indicate a cooling trend.
-  anomaly_trend = anomaly.calculate_trend(average_anomalies_by_year)
-
-  # To make sure our logic isn't getting carried away, we should check the absolute temperature trends/slopes for each month and average the slopes into one annual slope to see that our anomaly trend lines up. If our anomaly uses a fixed baseline, the trends should perfectly match unless some data is missing.
   absolute_trend = anomaly.calculate_absolute_trend(temperatures_by_month)
 
-  # We will gather statistics on our trends for end of command summaries
-  anomaly_visual = output.update_statistics(anomaly_trend, "anomaly")
-  absolute_visual = output.update_statistics(absolute_trend, "absolute")
+  absolute_visual = output.update_statistics(absolute_trend)
 
   # We wish to give the Developer a quick reference to the station's starting and ending years.
   start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
 
-  # Increase the station iteration for console output
   station_iteration += 1
 
-  # Output Progress and Trends to Console
-  output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, anomaly_visual, anomaly_trend, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
+  output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
 
 # Remember those statistics we collected earlier? We finally show them to the Developer in the Console.
 output.print_summary_to_console(TOTAL_STATIONS, TEMPERATURES_FILE_PATH)
-
-
 
 # If we convert our list of station annual anomalies into a dataframe, it makes it easier to work with.
 annual_anomalies_by_station_dataframe = pd.DataFrame(annual_anomalies_by_station)
@@ -131,6 +113,7 @@ average_anomolies_of_all_stations_divided = average_anomolies_of_all_stations.ap
 
 # Finally prepare the data for Excel and save
 output.create_excel_file(
+
   average_of_stations = average_anomolies_of_all_stations,
   average_of_stations_divided = average_anomolies_of_all_stations_divided,
 
@@ -149,6 +132,7 @@ output.create_excel_file(
 end_time = time.perf_counter() - t0
 
 minutes, remainder_seconds= divmod(end_time, 60)
+
 hours, remainder_minutes= divmod(minutes, 60)
 
 seconds  = normal_round(end_time)

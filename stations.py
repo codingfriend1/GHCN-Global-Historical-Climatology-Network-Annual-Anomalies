@@ -256,6 +256,15 @@ def determine_grid_weight(grid_label, include_land_ratio_in_weight = False):
 
     return normal_round(grid_weight, 4)
 
+def capitalize_first_letters(string):
+
+  string = string.replace("_", " ").replace("  ", " ").lower()
+
+  word_array = [i for i in string.split(" ") if i]
+
+  return " ".join(word[0].upper() + word[1:] for word in word_array)
+
+
 # Return the name and country for a provided station_id
 def get_station_address(station_id, stations):
 
@@ -273,13 +282,12 @@ def get_station_address(station_id, stations):
     
     return 'Unknown'
 
-  station_name = " ".join([x[0].upper() + x[1:] for x in station_row[0].lower().split("_")])
+  station_name = capitalize_first_letters(station_row[0])
 
-  station_province = station_row[1]
+  station_province = capitalize_first_letters(station_row[1])
 
   return f"{station_name}, {station_province}"
 
-  
 
 # Get the grid label of the station's assigned grid box
 def get_station_gridbox(station_id, stations):

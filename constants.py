@@ -15,16 +15,16 @@ import math
   USCRN - U.S. Climate Reference Network
 
 '''
-NETWORK = "GHCN"
+NETWORK = "USHCN"
 
 '''
   Which version of the network to work with
 
   For GHCN - 'v3', 'v4', 'daily'
-  For USHCN - 'v1', 'v2', 'v2.5'
+  For USHCN - 'v2.5'
   For USCRN - 'v1'
 '''
-VERSION = 'v3'
+VERSION = 'v2.5'
 
 '''
   Which Quality Controlled dataset of the network to work with
@@ -35,7 +35,7 @@ VERSION = 'v3'
   For USCRN v1 - 'monthly01'
   For GHCN daily - 'all'
 '''
-QUALITY_CONTROL_DATASET = "qcu"
+QUALITY_CONTROL_DATASET = "raw"
 
 # Earliest year you want to consider in the data
 YEAR_RANGE_START = 1851
@@ -53,7 +53,7 @@ PURGE_FLAGS = False
 ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 
 # Whether to create a columns for each station's annual anomalies in the final Excel sheet. With the larger number of stations in the GHCNm v4, this will cause the program to crash at the end since 27,000 columns it too large for an excel file. But it is useful for testing purposes and smaller station amounts. When set to False, annual anomaly columns are printed for each grid quadrant instead.
-PRINT_STATION_ANOMALIES = False
+PRINT_STATION_ANOMALIES = True
 
 # The range to consider when calculating trends for console output, does not effect excel results
 ABSOLUTE_START_YEAR = 1880 # Inclusive

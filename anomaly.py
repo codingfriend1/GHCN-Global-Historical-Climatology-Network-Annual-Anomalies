@@ -9,107 +9,73 @@ import numpy as np
 import math
 import stations
 
-def isnumber(num):
-  return not math.isnan(num)
-
-# Translate the Reference Start Year into an index in the data. 
-def get_reference_year_index():
-
-  INDEX_FOR_REFERENCE_START_YEAR = REFERENCE_START_YEAR - YEAR_RANGE_START
-
-  INDEX_FOR_REFERENCE_END_YEAR = INDEX_FOR_REFERENCE_START_YEAR + REFERENCE_RANGE
-
-  return INDEX_FOR_REFERENCE_START_YEAR, INDEX_FOR_REFERENCE_END_YEAR
-
-def determine_readings_needed_for_reliable_average(data_length):
+def get_minimum_years(data_length):
   
   return math.ceil(ACCEPTABLE_AVAILABLE_DATA_PERCENT * data_length)
 
+
+def mean_if_enough_data(row, minimum_years_needed):
+
+  return row.mean(skipna=True).round(2) if row.count() >= minimum_years_needed else math.nan
+
+
 def average_reference_years_by_month(temperatures_by_month):
 
-  INDEX_FOR_REFERENCE_START_YEAR, INDEX_FOR_REFERENCE_END_YEAR = get_reference_year_index()
+  reference_years = temperatures_by_month[ range(REFERENCE_START_YEAR, REFERENCE_START_YEAR + REFERENCE_RANGE) ]
 
-  reference_range = temperatures_by_month.iloc[:, range(INDEX_FOR_REFERENCE_START_YEAR, INDEX_FOR_REFERENCE_END_YEAR) ]
+  minimum_years_needed = get_minimum_years(REFERENCE_RANGE)
 
-  baseline_by_month = reference_range.mean(axis=1, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))
-
-  # Determine the amount of necessary values to form a reliable average
-  necessary_minimum_readings_to_form_a_reliable_average = determine_readings_needed_for_reliable_average(len(reference_range))
-
-  # If the number of readings is less than the necessary minimum for forming a reliable average, substitute the value with NaN
-  for row_index, row in reference_range.iterrows():
-
-    number_of_yearly_readings_within_reference_range = row.count()
-
-    if number_of_yearly_readings_within_reference_range < necessary_minimum_readings_to_form_a_reliable_average:
-
-      baseline_by_month.iat[row_index] = math.nan
+  baseline_by_month = reference_years.apply(mean_if_enough_data, args=(minimum_years_needed,), axis=1)
 
   return baseline_by_month
 
 
-# An anomaly is calculated by subtracting a reference average from the current reading
-def calculate_anomaly(temperature, reference_average):
+def calculate_anomaly(temperature, baseline_by_month):
 
-  # We only want to calculate an anomaly if the reference average and the current reading are not missing
-  anomaly = normal_round(temperature - reference_average, 2) if isnumber(temperature) and isnumber(reference_average) else math.nan
+  month = temperature.name
 
-  return anomaly
+  reference_average_for_month = baseline_by_month[month]
+
+  return temperature.subtract(reference_average_for_month, fill_value=math.nan).apply(normal_round, args=(2,))
 
 
 # Within each month class, calculate annual anomalies using array of fixed reference averages provided
 def calculate_anomalies_by_month_class(temperatures_by_month, baseline_by_month):
 
-  anomalies_by_month = [
-    [], # jan
-    [], # feb
-    [], # mar
-    [], # apr
-    [], # may
-    [], # jun
-    [], # jul
-    [], # aug
-    [], # sep
-    [], # oct
-    [], # nov
-    [], # dec
-  ]
-
-  for row_index, temperature_row in temperatures_by_month.iterrows():
-
-    reference_average_for_row = baseline_by_month.iat[row_index]
-
-    for year_value in temperature_row:
-
-      anomaly_for_year = calculate_anomaly(year_value, reference_average_for_row)
-
-      anomalies_by_month[row_index].append(anomaly_for_year)
-
-  return pd.DataFrame(anomalies_by_month, columns=range(YEAR_RANGE_START, YEAR_RANGE_END))
+  return temperatures_by_month.apply(calculate_anomaly, args=(baseline_by_month,), axis=1)
 
 
-def average_monthly_anomalies_by_year(lists_of_anomalies, axis=0):
+def average_monthly_anomalies_by_year(lists_of_anomalies):
 
-  average_anomalies_by_year = lists_of_anomalies.mean(axis=axis, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))
+  average_anomalies_by_year = lists_of_anomalies.mean(
+
+    axis=0, skipna=True, level=None, numeric_only=True
+    
+  ).apply(normal_round, args=(2,))
 
   return average_anomalies_by_year
+
 
 def weighted_avg(df, weights):
   
   indices = ~np.isnan(df)
 
   if np.isnan(df).all():
+
     return math.nan
+
   else:
+    
     return (df[indices] * weights[indices]).sum() / weights[indices].sum()
+
 
 def average_weighted_grid_anomalies_by_year(anomalies_by_grid):
 
   weights = anomalies_by_grid.iloc[0].to_numpy()
 
-  average_anomalies_by_year = anomalies_by_grid.apply(weighted_avg, args=(weights,), axis=1).apply(normal_round, args=(2,))
+  average_anomalies_by_year = anomalies_by_grid.apply(weighted_avg, args=(weights,), axis=1)
 
-  return average_anomalies_by_year
+  return average_anomalies_by_year.apply(normal_round, args=(2,))
 
 
 def average_anomalies_by_year_by_grid(lists_of_anomalies, include_land_ratio_in_weight = False):
@@ -132,36 +98,36 @@ def average_anomalies_by_year_by_grid(lists_of_anomalies, include_land_ratio_in_
 
   return pd.DataFrame(annual_anomalies_by_grid)
 
+
 def calculate_trend(average_anomalies_by_year):
 
-  y_anomalies = average_anomalies_by_year.to_numpy()
-  x_years = average_anomalies_by_year.index.to_numpy()
+  y = average_anomalies_by_year.to_numpy()
 
-  idx = np.isfinite(x_years) & np.isfinite(y_anomalies) & np.greater_equal(x_years, ABSOLUTE_START_YEAR) & np.less(x_years, ABSOLUTE_END_YEAR)
+  years = average_anomalies_by_year.index.to_numpy()
 
-  trends_range = ABSOLUTE_END_YEAR - ABSOLUTE_START_YEAR
+  # Limit our range to only numbers and only years between the ABSOLUTE_START_YEAR and ABSOLUTE_END_YEAR
+  idx = (np.isfinite(years) & np.isfinite(y) & 
+    np.greater_equal(years, ABSOLUTE_START_YEAR) & np.less(years, ABSOLUTE_END_YEAR))
 
-  necessary_minimum_readings_to_form_a_reliable_average = determine_readings_needed_for_reliable_average(trends_range)
 
-  if len(x_years[idx]) >= necessary_minimum_readings_to_form_a_reliable_average:
+  minimum_for_reliable_average = get_minimum_years(ABSOLUTE_END_YEAR - ABSOLUTE_START_YEAR)
 
-    slope_of_yearly_averages = normal_round(np.polyfit(x_years[idx], y_anomalies[idx], 1)[0], 3)
+  if len(years[idx]) >= minimum_for_reliable_average:
 
-    return slope_of_yearly_averages
+    slope_of_annual_temperatures = normal_round(np.polyfit(years[idx], y[idx], 1)[0], 3)
+
+    return slope_of_annual_temperatures
 
   else:
+
     return math.nan
 
 
 # For each month class, calculate the annual absolute trend and finally average all trends
 def calculate_absolute_trend(temperatures_by_month):
 
-  trends_by_month = []
+  absolute_trends = temperatures_by_month.apply(calculate_trend, axis=1)
 
-  for year, month_row in temperatures_by_month.iterrows():
-
-    trends_by_month.append(calculate_trend(month_row))
-
-  average_absolute_trend = pd.DataFrame(trends_by_month).mean(axis=0, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))[0]
+  average_absolute_trend = normal_round(absolute_trends.mean(skipna=True), 3)
 
   return average_absolute_trend
