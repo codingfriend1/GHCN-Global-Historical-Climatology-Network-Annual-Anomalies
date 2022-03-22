@@ -260,6 +260,9 @@ def get_files():
 
   downloadables = get_tree(QUALITY_CONTROL_DATASET, datasets, f"dataset in '{NETWORK} {VERSION}'")
 
+  # We always need the Station Metadata for GHCN v3 since it's the only metadata that includes station environment
+  downloadables.append(v3_unadjusted)
+
   downloaded_files = download_if_needed(downloadables)
   
   extract_daily_if_needed() if VERSION == 'daily' else extract_if_needed(downloaded_files) 

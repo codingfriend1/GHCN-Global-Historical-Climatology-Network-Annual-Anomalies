@@ -38,13 +38,13 @@ VERSION = 'v3'
 QUALITY_CONTROL_DATASET = "qcu"
 
 # Earliest year you want to consider in the data
-YEAR_RANGE_START = 1990
+YEAR_RANGE_START = 1851
 
 # Leave blank if you wish to use a rolling average
-REFERENCE_START_YEAR = 2000
+REFERENCE_START_YEAR = 1961
 
 # Number of years to consider in the reference average
-REFERENCE_RANGE = 20
+REFERENCE_RANGE = 30
 
 # Whether to purge all readings with Quality Control, Data Measurement, or Data Source flags
 PURGE_FLAGS = False
@@ -56,21 +56,18 @@ ACCEPTABLE_AVAILABLE_DATA_PERCENT = 0.5
 PRINT_STATION_ANOMALIES = False
 
 # The range to consider when calculating trends for console output, does not effect excel results
-ABSOLUTE_START_YEAR = 2000 # Inclusive
+ABSOLUTE_START_YEAR = 1880 # Inclusive
 ABSOLUTE_END_YEAR = 2021 # Non-inclusive
 
 # How many months does each year of data need to include to accept that row of data
 MONTHS_REQUIRED_EACH_YEAR = 12
 
 # Restrict data to only use stations in a certain setting in GHCNm v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
-# SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban"
+# SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban", "rural and urban"
 SURROUNDING_CLASS = ""
 
 # Only use stations from the USHCN network in GHCNm v3
 ONLY_USHCN = False
-
-# Include country name, ex: China, United States of America, Artic, Ireland (case-insensitive)
-USE_COUNTRY = False
 
 # Include a range of countries, use an array of strings of each Country Name
 IN_COUNTRY = False # ['China', 'United States of America', 'Artic', 'Ireland']

@@ -32,7 +32,7 @@ Settings may be adjusted in `constants.py` before running the program:
 
 - `NETWORK` (`'GHCN'`, `'USHCN'`, `'USCRN'`) - What network do you wish to use.
 
- - `VERSION` (`'v3'`, `'v4'`, `'daily'`, `'v2.5'`, `'v1'`) - What version of the network to use, limited by the network chosen
+ - `VERSION` (`'v3'`, `'v4'`, `'daily'`, `'v2.5'`, `'v1'`) - What version of the network to use, limited by the network chosen. `'v2.5'` is for the `USHCN` network and `'v1'` is for the `USCRN` network.
 
  - `QUALITY_CONTROL_DATASET` (`'qcu`, `'qca'`, `'qcf'`, `'raw'`, `'tob'`, `'Fls'`, `'monthly01'`) - Which quality control dataset to use for the chosen version of the chosen network.
 
@@ -55,10 +55,6 @@ Settings may be adjusted in `constants.py` before running the program:
  - `MONTHS_REQUIRED_EACH_YEAR` (Ex: `12`) -  How many months does each year of data need to be included in the calculation.
 
  - `SURROUNDING_CLASS` (`"rural"`, `"suburban"`, `"urban"`, `"rural and suburban"`, or `"suburban and urban"`) - For version 3 of GHCNm only, this limits the stations used in the calculations to those marked with a particular surrounding environment according to the population class (`POPCLS`) and population class as determined by Satellite night lights (`POPCSS`). When both POPCLS and POPCSS are rural, a station is marked as rural. When both POPCLS and POPCSS are urban, a station is marked as urban. Suburban includes everything in-between.
-
- - `ONLY_USHCN` (Boolean) - Limit the stations in GHCN v3 to the 1,218 stations (as of Mar 21, 2022) from the U.S. Historical Climatology Network (USHCN) network before making the calculations. This only works with `v3`.
-
- - `USE_COUNTRY` (Ex: `'China'`, `'United States of America'`, `'Ireland'`, `'Artic'`, etc...) - Limit the stations in GHCN v3 to stations from one specific country. This only works with `v3`.
 
  - `IN_COUNTRY` (Ex: `['China', 'United States of America', 'Ireland', 'Artic']`) - Limit the stations in GHCN v3 to stations from a range of countries. Should be provided as an array. This only works with `v3`.
 

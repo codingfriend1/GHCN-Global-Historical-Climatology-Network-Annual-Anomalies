@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 import download
+import glob
 
 from networks import ghcn
 from networks import ushcn
@@ -28,37 +29,99 @@ https://modernsurvivalblog.com/wp-content/uploads/2013/09/united-states-latitude
 GRID_SIZE = 5
 
 def read_land_mask():
+
   global land_mask
+
   land_mask = pd.read_stata(download.LAND_MASK_FILE_NAME)
 
-# def get_ushcn_stations():
 
-#   ushcn_station_metadata_file_url = download.get_ushcn_metadata_file_name()
+'''
+  Determine what setting/environment the station is in based on its popcls and popcss
+  https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
 
-#   dtypes = {
-#     'station_id': np.object,
-#   }
+  POPCLS: population class 
+    (U=Urban (>50,000 persons); 
+    (S=Suburban (>=10,000 and <= 50,000 persons);
+    (R=Rural (<10,000 persons)
+    City and town boundaries are determined from location of station
+    on Operational Navigation Charts with a scale of 1 to 1,000,000.
+    For cities > 100,000 persons, population data were provided by
+    the United Nations Demographic Yearbook. For smaller cities and
+    towns several atlases were uses to determine population.
 
-#   # Name our columns
-#   names = ['station_id']
+  POPCSS: population class as determined by Satellite night lights 
+   (C=Urban, B=Suburban, A=Rural)
+'''
+def get_environment(row):
 
-#   colspecs = [(0,12)]
+  if (row['popcls'] == 'R') & (row['popcss'] == 'A'):
 
-#   ushcn_stations = pd.read_fwf(
-#     ushcn_station_metadata_file_url, 
-#     colspecs=colspecs, 
-#     names=names, 
-#     dtype=dtypes, 
-#     header=None, 
-#     encoding='utf-8', 
-#   )
+    return 'rural'
 
-#   if VERSION == "v3":
-#     ushcn_stations['station_id'] = ushcn_stations['station_id'].str.replace("USH", '425').astype(str)
+  elif (row['popcls'] == 'U') & (row['popcss'] == 'C'):
 
-#   ushcn_stations = ushcn_stations.set_index('station_id')
+    return 'urban'
 
-#   return ushcn_stations
+  else:
+
+    return 'suburban'
+
+
+def get_station_environment_list():
+
+  v3_station_file_name = glob.glob(f"ghcnm.v3*/*qcu.inv")[0]
+
+  dtypes = { 'station_id': str }
+
+  names = ['station_id', 'popcls', 'popcss']
+
+  colspecs = [(0,11), (73, 74), (106,107)]
+
+  stations = pd.read_fwf(
+    v3_station_file_name, 
+    colspecs=colspecs, 
+    names=names, 
+    dtype=dtypes, 
+    header=None, 
+    encoding='utf-8', 
+  )
+
+  stations['partial_station_id'] = stations['station_id'].str[3:]
+
+  stations['environment'] = stations.apply(get_environment, axis=1)
+
+  stations.drop(['popcls', 'popcss', 'station_id'], axis=1, inplace=True)
+
+  return stations
+
+
+def limit_stations_by_environment(stations, environment):
+
+  if environment == 'rural':
+
+    stations = stations[(stations['environment'] == 'rural')]
+
+  elif environment == 'suburban':
+
+    stations = stations[(stations['environment'] == 'suburban')]
+
+  elif environment == 'urban':
+
+    stations = stations[(stations['environment'] == 'urban')]
+
+  elif environment == 'rural and suburban':
+
+    stations = stations[(stations['environment'] == 'rural') | (stations['environment'] == 'suburban')]
+
+  elif environment == 'suburban and urban':
+
+    stations = stations[(stations['environment'] == 'suburban') | (stations['environment'] == 'urban')]
+
+  elif environment == 'rural and urban':
+
+    stations = stations[(stations['environment'] == 'rural') | (stations['environment'] == 'urban')]
+
+  return stations
 
 # Read the station file, parse it into a usable table, and join relevant information
 def get_stations(station_file_name, country_codes_file_name):
@@ -77,139 +140,49 @@ def get_stations(station_file_name, country_codes_file_name):
 
     stations = uscrn.get_stations(station_file_name)
 
-  stations = stations.set_index('station_id')
-
   # After dividing the world into grid boxes by latitude and longitude, assign each station to a grid box and save the grid box label to the stations table
-  gridded_stations = set_station_grid_cells(stations)
+  stations = set_station_grid_cells(stations)
+
+  stations_by_environment = get_station_environment_list()
+
+  stations = merge_with_environment(stations, stations_by_environment)
+
+  stations = stations.set_index('station_id')
 
   read_land_mask()
 
-  '''
-    https://www.ncei.noaa.gov/pub/data/ghcn/v3/README
+  stations = limit_stations_by_environment(stations, SURROUNDING_CLASS)
 
-    POPCLS: population class 
-      (U=Urban (>50,000 persons); 
-      (S=Suburban (>=10,000 and <= 50,000 persons);
-      (R=Rural (<10,000 persons)
-      City and town boundaries are determined from location of station
-      on Operational Navigation Charts with a scale of 1 to 1,000,000.
-      For cities > 100,000 persons, population data were provided by
-      the United Nations Demographic Yearbook. For smaller cities and
-      towns several atlases were uses to determine population.
-
-    POPCSS: population class as determined by Satellite night lights 
-     (C=Urban, B=Suburban, A=Rural)
-  '''
-  if VERSION == 'v3':
-
-    if SURROUNDING_CLASS == 'rural':
-
-      gridded_stations = gridded_stations[
-        (gridded_stations['popcls'] == 'R') & 
-        (gridded_stations['popcss'] == 'A')
-      ]
-
-    elif SURROUNDING_CLASS == 'suburban':
-
-      # Select all stations which are not fully rural and not fully urban
-      gridded_stations = gridded_stations[
-        ~(
-          (gridded_stations['popcls'] == 'U') & 
-          (gridded_stations['popcss'] == 'C')
-        ) & 
-        ~(
-          (gridded_stations['popcls'] == 'R') & 
-          (gridded_stations['popcss'] == 'A')
-        )
-      ]
-
-    elif SURROUNDING_CLASS == 'rural and suburban':
-
-      gridded_stations = gridded_stations[
-        ~(
-          (gridded_stations['popcls'] == 'U') & 
-          (gridded_stations['popcss'] == 'C')
-        )
-      ]
-      
-    elif SURROUNDING_CLASS == 'suburban and urban':
-
-      gridded_stations = gridded_stations[
-        ~(
-          (gridded_stations['popcls'] == 'R') & 
-          (gridded_stations['popcss'] == 'A')
-        )
-      ]
-
-    elif SURROUNDING_CLASS == 'urban':
-
-      gridded_stations = gridded_stations[
-        (gridded_stations['popcls'] == 'U') & 
-        (gridded_stations['popcss'] == 'C')
-      ]
-
-  # Limit data to only USHCN Data
-  if ONLY_USHCN and VERSION == 'v3':
-
-    ushcn_stations = get_ushcn_stations()
-
-    gridded_stations = limit_stations_to_ushcn(gridded_stations, ushcn_stations)
-
-  if USE_COUNTRY and VERSION == 'v3':
-
-    UPPERCASE_COUNTRY_NAME = USE_COUNTRY.upper()
-
-    if UPPERCASE_COUNTRY_NAME != 'ARTIC':
-
-      gridded_stations = gridded_stations[
-        gridded_stations['country'].str.contains(UPPERCASE_COUNTRY_NAME)
-      ]
-    else:
-      gridded_stations = gridded_stations[
-        gridded_stations['latitude'] >= ARTIC_CIRCLE_LATITUDE
-      ]
-
-  if IN_COUNTRY and VERSION == 'v3':
+  if IN_COUNTRY and NETWORK == 'GHCN':
 
     UPPERCASE_COUNTRIES = list(map(str.upper, IN_COUNTRY))
 
     if 'ARTIC' in UPPERCASE_COUNTRIES:
 
-      gridded_stations = gridded_stations.loc[
-        (gridded_stations['country'].isin(UPPERCASE_COUNTRIES)) | 
-        (gridded_stations['latitude'] >= ARTIC_CIRCLE_LATITUDE)
+      stations = stations.loc[
+        (stations['country'].isin(UPPERCASE_COUNTRIES)) | 
+        (stations['latitude'] >= ARTIC_CIRCLE_LATITUDE)
       ]
       
     else:
 
-      gridded_stations = gridded_stations.loc[
-        gridded_stations['country'].isin(UPPERCASE_COUNTRIES)
+      stations = stations.loc[
+        stations['country'].isin(UPPERCASE_COUNTRIES)
       ]
 
-  print(gridded_stations)
-
   # Return our parsed and joined table
-  return gridded_stations
-
-def limit_stations_to_ushcn(gridded_stations_and_country_name, ushcn_stations):
-
-  keys = list(ushcn_stations.index.values)
-
-  subset_of_gridded_stations_and_country_name = gridded_stations_and_country_name.loc[
-    gridded_stations_and_country_name.index.intersection(keys)
-  ]
-
-  return subset_of_gridded_stations_and_country_name
-
+  return stations
 
 # For add the associated country name to the station metadata
-def merge_with_country_names(stations, country_codes_file_name):
+def merge_with_environment(stations, stations_by_environment):
 
-  global country_code_df
+  stations['partial_station_id'] = stations['station_id'].str[3:]
 
-  country_code_df = pd.read_fwf(country_codes_file_name, widths=[3,45], names=['country_code','country'])
+  df = stations.merge(stations_by_environment, on='partial_station_id', how='left')
 
-  return pd.merge(stations, country_code_df, on='country_code', how='outer')
+  df.drop(['partial_station_id'], axis=1, inplace=True)
+
+  return df
 
 '''
 Use latitude and longitude lines to divide the world into a grid. Assign each station to a grid and save the grid label in the station's meta data. This can be used to average anomalies by grid using all the stations within that grid. All grid boxes with data can then be averaged to form a world wide average.
@@ -282,11 +255,6 @@ def determine_grid_weight(grid_label, include_land_ratio_in_weight = False):
   else:
 
     return normal_round(grid_weight, 4)
-
-# Return the Country name for a provided country_code (could be a 3-digit number or 2 character acronym)
-def get_country_name_from_code(country_code):
-
-  return country_code_df.loc[country_code_df['country_code'] == country_code].to_numpy()[0][1]
 
 # Return the name and country for a provided station_id
 def get_station_address(station_id, stations):

@@ -77,9 +77,9 @@ def get_stations(station_file_name, country_codes_file_name):
 
   if VERSION == "v3":
 
-    names = ['country_code', 'station_id',  'latitude', 'longitude', 'elevation', 'name', 'popcls', 'popcss']
+    names = ['country_code', 'station_id',  'latitude', 'longitude', 'elevation', 'name']
 
-    colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68), (73, 74), (106,107)]
+    colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68)]
 
     dtypes['country_code'] = "int64"
 
