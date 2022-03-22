@@ -15,7 +15,7 @@ import math
   USCRN - U.S. Climate Reference Network
 
 '''
-NETWORK = "USHCN"
+NETWORK = "GHCN"
 
 '''
   Which version of the network to work with
@@ -24,7 +24,7 @@ NETWORK = "USHCN"
   For USHCN - 'v2.5'
   For USCRN - 'v1'
 '''
-VERSION = 'v2.5'
+VERSION = 'v3'
 
 '''
   Which Quality Controlled dataset of the network to work with
@@ -35,7 +35,7 @@ VERSION = 'v2.5'
   For USCRN v1 - 'monthly01'
   For GHCN daily - 'all'
 '''
-QUALITY_CONTROL_DATASET = "raw"
+QUALITY_CONTROL_DATASET = "qcu"
 
 # Earliest year you want to consider in the data
 YEAR_RANGE_START = 1851
@@ -60,7 +60,7 @@ ABSOLUTE_START_YEAR = 1880 # Inclusive
 ABSOLUTE_END_YEAR = 2021 # Non-inclusive
 
 # How many months does each year of data need to include to accept that row of data
-MONTHS_REQUIRED_EACH_YEAR = 12
+MONTHS_REQUIRED_EACH_YEAR = 1
 
 # Restrict data to only use stations in a certain setting in GHCNm v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
 # SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban", "rural and urban"

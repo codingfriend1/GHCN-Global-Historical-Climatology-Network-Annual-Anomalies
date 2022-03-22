@@ -179,7 +179,7 @@ def create_excel_file(
 
     for grid_cell_label, grid in anomalies_by_station.iterrows():
       
-      excel_data[grid.iloc[0]] = generate_column_for_output(grid.iloc[1], grid.iloc[2], pd.Series(grid.iloc[3:].to_numpy()))
+      excel_data[grid.iloc[0]] = generate_column_for_output([ grid.iloc[1], grid.iloc[2] ], pd.Series(grid.iloc[3:].to_numpy()))
 
   else:
 
