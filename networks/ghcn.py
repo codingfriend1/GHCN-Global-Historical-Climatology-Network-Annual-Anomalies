@@ -12,19 +12,23 @@ def get_files():
 
     COUNTRIES_FILE_PATH = 'country-codes'
 
-    TEMPERATURES_FILE_PATH, STATION_FILE_PATH = glob.glob(f"ghcnm.v3*/*{QUALITY_CONTROL_DATASET}.*")
+    STATION_FILE_PATH = glob.glob(f"ghcnm.v3*/*{QUALITY_CONTROL_DATASET}.inv")[0]
+
+    TEMPERATURES_FILE_PATH = glob.glob(f"ghcnm.v3*/*{QUALITY_CONTROL_DATASET}.dat")[0]
 
   elif VERSION == 'v4':
 
     COUNTRIES_FILE_PATH = 'ghcnm-countries.txt'
 
-    TEMPERATURES_FILE_PATH, STATION_FILE_PATH = glob.glob(f"ghcnm.v4*/*{QUALITY_CONTROL_DATASET}.*")
+    STATION_FILE_PATH = glob.glob(f"ghcnm.v4*/*{QUALITY_CONTROL_DATASET}.inv")[0]
+
+    TEMPERATURES_FILE_PATH = glob.glob(f"ghcnm.v4*/*{QUALITY_CONTROL_DATASET}.dat")[0]
     
   elif VERSION == 'daily':
 
-    STATION_FILE_PATH = 'ghcnd-stations.txt'
-
     COUNTRIES_FILE_PATH = 'ghcnd-countries.txt'
+
+    STATION_FILE_PATH = 'ghcnd-stations.txt'
 
     # Check if daily data has been compiled already
     compiled_daily_data = glob.glob("ghcnd.tavg.*.all.dat")

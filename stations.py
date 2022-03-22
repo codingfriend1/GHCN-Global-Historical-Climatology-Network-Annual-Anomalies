@@ -63,6 +63,8 @@ def read_land_mask():
 # Read the station file, parse it into a usable table, and join relevant information
 def get_stations(station_file_name, country_codes_file_name):
 
+  stations = []
+
   if NETWORK == 'GHCN':
 
     stations = ghcn.get_stations(station_file_name, country_codes_file_name)
