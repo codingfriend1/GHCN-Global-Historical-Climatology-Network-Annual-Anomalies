@@ -241,7 +241,7 @@ def print_summary_to_console(total_stations, TEMPERATURES_FILE_PATH):
 
   print("-------------------------------------------------------------------------------------------------------------------------------------")
 
-  print(f"Absolete Trends:\t\t{absolute_up_count} ↑ ({absolute_upwards_trend} Avg)  \t\t{absolute_down_count} ↓ ({absolute_downwards_trend} Avg)")
+  print(f"Absolute Trends:\t\t{absolute_up_count} ↑ ({absolute_upwards_trend} Avg)  \t\t{absolute_down_count} ↓ ({absolute_downwards_trend} Avg)")
 
   if not absolute_all_trends == "Unknown":
     
