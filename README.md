@@ -2,9 +2,11 @@
 This work is designed to produce annual temperature anomalies for all land based temperatures from the Global Historical Climatology Network using either an average of all individual station anomalies or an average of gridded station anomalies. The process is highly customizable through settings in `constants.py`. 
 
 Works with:
-  - Version 3 (v3)
-  - Version 4 (v4)
-  - Daily Station data (daily)
+  - GHCN Version 3 (v3)
+  - GHCN Version 4 (v4)
+  - GHCN Daily (daily)
+  - USHCN Version 2.5 (v2.5)
+  - USCRN Version 1 (v1)
 
 No adjustments or algorithms are run on the data, unless you choose to remove flagged data.
 
