@@ -45,21 +45,21 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   baseline_by_month = anomaly.average_reference_years_by_month(temperatures_by_month)
 
   # Calculate anomalies for each year on a month class by month class basis (Jan to Jan, Feb to Feb, ...) relative to the baselines we calculated earlier (for each month) and return an array of month class arrays
-  anomalies_by_month = anomaly.calculate_anomalies_by_month_class(temperatures_by_month, baseline_by_month)
+  anomalies_by_month = anomaly.calculate_anomalies_by_month(temperatures_by_month, baseline_by_month)
 
   # For each year, average the anomalies for all 12 months and return an list of average anomalies by year. It is ok if some months are missing data since we first converted them to anomalies before averaging.
-  average_anomalies_by_year = anomaly.average_monthly_anomalies_by_year(anomalies_by_month)
+  average_anomalies_by_year = anomaly.average_anomalies(anomalies_by_month)
 
   station_location = stations.get_station_address(station_id, STATIONS)
 
-  station_gridbox = stations.get_station_gridbox(station_id, STATIONS)
+  station_quadrant = stations.get_station_quadrant(station_id, STATIONS)
 
   # Add important metadata to the beginning of each station's column (station's ID, station's location, and station's grid box label). The grid box label is important if we wish to average by grid instead of by station.
-  average_anomalies_by_year_and_station_metadata = output.generate_column([station_id, station_location, station_gridbox], average_anomalies_by_year)
+  annual_anomalies_and_metadata = [station_id, station_location, station_quadrant] + list(average_anomalies_by_year)
 
-  annual_anomalies_by_station.append(average_anomalies_by_year_and_station_metadata)
+  annual_anomalies_by_station.append(annual_anomalies_and_metadata)
 
-  absolute_trend = anomaly.calculate_absolute_trend(temperatures_by_month)
+  absolute_trend = anomaly.average_trends(temperatures_by_month)
 
   absolute_visual = output.update_statistics(absolute_trend)
 
@@ -68,7 +68,7 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 
   station_iteration += 1
 
-  output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox)
+  output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_quadrant)
 
 # Remember those statistics we collected earlier? We finally show them to the Developer in the Console.
 output.print_summary_to_console(TOTAL_STATIONS, TEMPERATURES_FILE_PATH)
@@ -76,52 +76,46 @@ output.print_summary_to_console(TOTAL_STATIONS, TEMPERATURES_FILE_PATH)
 # If we convert our list of station annual anomalies into a dataframe, it makes it easier to work with.
 annual_anomalies_by_station_dataframe = pd.DataFrame(annual_anomalies_by_station)
 
-# Separate stations into their respective grid boxes and average all anomalies by year per grid box
-annual_anomalies_by_grid = anomaly.average_anomalies_by_year_by_grid(annual_anomalies_by_station_dataframe)
+annual_anomalies_by_station_dataframe.columns = ['station_id', "location", "quadrant" ] + YEAR_RANGE_LIST
 
-annual_anomalies_by_grid_weighed_by_land_ratio = anomaly.average_anomalies_by_year_by_grid(
+annual_anomalies_by_station_dataframe.set_index('station_id')
+
+# Average annual anomolies across all ungridded stations
+ungridded_anomalies = anomaly.average_anomalies(annual_anomalies_by_station_dataframe)
+
+# Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
+ungridded_anomalies_divided = ungridded_anomalies.apply(anomaly.divide_by_one_hundred)
+
+# Separate stations into their respective grid boxes and average all anomalies by year per grid box
+annual_anomalies_by_grid = anomaly.average_stations_per_grid(annual_anomalies_by_station_dataframe)
+
+annual_anomalies_by_grid_of_land = anomaly.average_stations_per_grid(
   annual_anomalies_by_station_dataframe, 
-  include_land_ratio_in_weight = True
+  use_land_ratio = True
 )
 
 # Weigh each grid box by the cosine of the mid-latitude point for that grid box (and possibly the land ratio) and average all grid boxes with data. The result is a list of global anomalies by year.
-avg_annual_anomalies_of_all_grids = anomaly.average_weighted_grid_anomalies_by_year(annual_anomalies_by_grid)
+gridded_anomalies = anomaly.average_all_grids(annual_anomalies_by_grid)
+
+# Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
+gridded_anomalies_divided = gridded_anomalies.iloc[1:].apply(anomaly.divide_by_one_hundred)
 
 # Also weigh each grid by land ratio
-avg_annual_anomalies_of_all_grids_weighed_by_land_ratio = anomaly.average_weighted_grid_anomalies_by_year(
-  annual_anomalies_by_grid_weighed_by_land_ratio
-)
+gridded_anomalies_of_land = anomaly.average_all_grids(annual_anomalies_by_grid_of_land)
 
-# Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
-avg_annual_anomalies_of_all_grids_divided = avg_annual_anomalies_of_all_grids.iloc[1:].apply(
-  lambda v : normal_round(v / 100, 3)
-)
-
-avg_annual_anomalies_of_all_grids_weighted_by_land_ratio_divided = avg_annual_anomalies_of_all_grids_weighed_by_land_ratio.iloc[1:].apply(
-    lambda v : normal_round(v / 100, 3)
-  )
-
-# Average annual anomolies across all ungridded stations
-average_anomolies_of_all_stations = anomaly.average_monthly_anomalies_by_year(
-  annual_anomalies_by_station_dataframe
-)
-
-# Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
-average_anomolies_of_all_stations_divided = average_anomolies_of_all_stations.apply(
-  lambda v : normal_round(v / 100, 3)
-)
+gridded_anomalies_of_land_divided = gridded_anomalies_of_land.iloc[1:].apply(anomaly.divide_by_one_hundred)
 
 # Finally prepare the data for Excel and save
 output.create_excel_file(
 
-  average_of_stations = average_anomolies_of_all_stations,
-  average_of_stations_divided = average_anomolies_of_all_stations_divided,
+  ungridded_anomalies = ungridded_anomalies,
+  ungridded_anomalies_divided = ungridded_anomalies_divided,
 
-  average_of_grids = avg_annual_anomalies_of_all_grids,
-  average_of_grids_divided = avg_annual_anomalies_of_all_grids_divided,
+  average_of_grids = gridded_anomalies,
+  average_of_grids_divided = gridded_anomalies_divided,
 
-  average_of_grids_by_land_ratio = avg_annual_anomalies_of_all_grids_weighed_by_land_ratio,
-  average_of_grids_by_land_ratio_divided = avg_annual_anomalies_of_all_grids_weighted_by_land_ratio_divided,
+  average_of_grids_by_land_ratio = gridded_anomalies_of_land,
+  average_of_grids_by_land_ratio_divided = gridded_anomalies_of_land_divided,
 
   anomalies_by_grid = annual_anomalies_by_grid,
   anomalies_by_station = annual_anomalies_by_station_dataframe,
@@ -129,18 +123,4 @@ output.create_excel_file(
   data_source = TEMPERATURES_FILE_PATH
 )
 
-end_time = time.perf_counter() - t0
-
-minutes, remainder_seconds= divmod(end_time, 60)
-
-hours, remainder_minutes= divmod(minutes, 60)
-
-seconds  = normal_round(end_time)
-
-print(f"Process completed in {int(normal_round(hours))}h:{int(normal_round(remainder_minutes))}m:{int(normal_round(remainder_seconds))}s")
-
-total_minutes = seconds / 60
-
-stations_per_minute = normal_round(TOTAL_STATIONS / total_minutes)
-
-print(f"With {'{:,}'.format(TOTAL_STATIONS)} stations, that's {'{:,}'.format(stations_per_minute)} stations/minute.\n")
+output.console_performance(t0, TOTAL_STATIONS)

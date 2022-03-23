@@ -31,9 +31,9 @@ VERSION = 'v3'
 
   For GHCN v3 - 'qcu', 'qca'
   For GHCN v4 - 'qcu', 'qcf'
+  For GHCN daily - 'all'
   For USHCN v2.5 - 'raw', 'tob', 'FLs'
   For USCRN v1 - 'monthly01'
-  For GHCN daily - 'all'
 '''
 QUALITY_CONTROL_DATASET = "qcu"
 
@@ -66,9 +66,6 @@ MONTHS_REQUIRED_EACH_YEAR = 1
 # SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban", "rural and urban"
 SURROUNDING_CLASS = ""
 
-# Only use stations from the USHCN network in GHCNm v3
-ONLY_USHCN = False
-
 # Include a range of countries, use an array of strings of each Country Name
 IN_COUNTRY = False # ['China', 'United States of America', 'Artic', 'Ireland']
 
@@ -89,6 +86,11 @@ SURROUNDING_CLASS = SURROUNDING_CLASS.lower()
 
 MISSING_VALUE = -9999
 
+YEAR_RANGE = range(YEAR_RANGE_START, YEAR_RANGE_END)
+YEAR_RANGE_LIST = list(YEAR_RANGE)
+
+RANGE_OF_REFERENCE_YEARS = range(REFERENCE_START_YEAR, REFERENCE_START_YEAR + REFERENCE_RANGE)
+RANGE_OF_REFERENCE_YEARS_LIST = list(YEAR_RANGE)
 
 # Methods
 def normal_round(num, decimals=0):

@@ -13,15 +13,30 @@ def get_minimum_years(data_length):
   
   return math.ceil(ACCEPTABLE_AVAILABLE_DATA_PERCENT * data_length)
 
+def mean_and_round(df, rounding_decimals = 2):
+
+  if isinstance(df, pd.Series):
+
+    return normal_round(df.mean(skipna=True), rounding_decimals)
+
+  else:  
+
+    return df.mean(skipna=True, numeric_only=True).apply(normal_round, args=(rounding_decimals,))
+
+
+def divide_by_one_hundred(num):
+
+  return normal_round(num / 100, 3)
+
 
 def mean_if_enough_data(row, minimum_years_needed):
 
-  return row.mean(skipna=True).round(2) if row.count() >= minimum_years_needed else math.nan
+  return mean_and_round(row) if row.count() >= minimum_years_needed else math.nan
 
 
 def average_reference_years_by_month(temperatures_by_month):
 
-  reference_years = temperatures_by_month[ range(REFERENCE_START_YEAR, REFERENCE_START_YEAR + REFERENCE_RANGE) ]
+  reference_years = temperatures_by_month[ RANGE_OF_REFERENCE_YEARS ]
 
   minimum_years_needed = get_minimum_years(REFERENCE_RANGE)
 
@@ -40,24 +55,19 @@ def calculate_anomaly(temperature, baseline_by_month):
 
 
 # Within each month class, calculate annual anomalies using array of fixed reference averages provided
-def calculate_anomalies_by_month_class(temperatures_by_month, baseline_by_month):
+def calculate_anomalies_by_month(temperatures_by_month, baseline_by_month):
 
   return temperatures_by_month.apply(calculate_anomaly, args=(baseline_by_month,), axis=1)
 
 
-def average_monthly_anomalies_by_year(lists_of_anomalies):
+def average_anomalies(lists_of_anomalies):
 
-  average_anomalies_by_year = lists_of_anomalies.mean(
-
-    axis=0, skipna=True, level=None, numeric_only=True
-    
-  ).apply(normal_round, args=(2,))
-
-  return average_anomalies_by_year
+  return mean_and_round(lists_of_anomalies)
 
 
 def weighted_avg(df, weights):
   
+  # Only average grids and weights that are not NaN
   indices = ~np.isnan(df)
 
   if np.isnan(df).all():
@@ -69,34 +79,33 @@ def weighted_avg(df, weights):
     return (df[indices] * weights[indices]).sum() / weights[indices].sum()
 
 
-def average_weighted_grid_anomalies_by_year(anomalies_by_grid):
+def average_all_grids(anomalies_by_grid):
 
-  weights = anomalies_by_grid.iloc[0].to_numpy()
+  return anomalies_by_grid.apply(
 
-  average_anomalies_by_year = anomalies_by_grid.apply(weighted_avg, args=(weights,), axis=1)
+    weighted_avg, args=(anomalies_by_grid['weight'],)
 
-  return average_anomalies_by_year.apply(normal_round, args=(2,))
+  ).apply(normal_round, args=(2,))
 
 
-def average_anomalies_by_year_by_grid(lists_of_anomalies, include_land_ratio_in_weight = False):
+def average_by_grid(stations_in_grid, use_land_ratio = False):
 
-  station_gridbox_row = 2
+  quadrant = stations_in_grid.name
 
-  stations_grouped_by_gridbox = lists_of_anomalies.groupby(by=[station_gridbox_row])
+  weight = stations.determine_grid_weight(quadrant, use_land_ratio=use_land_ratio)
 
-  annual_anomalies_by_grid = {}
+  average_by_year = mean_and_round(stations_in_grid)
 
-  for grid_label, stations_in_grid in stations_grouped_by_gridbox:
+  index = [ "weight" ] + list(YEAR_RANGE)
 
-    # Determine the weight to give the grid based on it's land and land / water ratio
-    grid_weight = stations.determine_grid_weight(grid_label, include_land_ratio_in_weight = include_land_ratio_in_weight)
+  values = [ weight ] + list(average_by_year)
 
-    # Average all the land stations for this grid
-    grid_average_by_year = stations_in_grid.mean(axis=0, skipna=True, level=None, numeric_only=True).apply(normal_round, args=(2,))
+  return pd.Series(values, index=index)
 
-    annual_anomalies_by_grid[grid_label] = np.concatenate([ [grid_weight], grid_average_by_year])
 
-  return pd.DataFrame(annual_anomalies_by_grid)
+def average_stations_per_grid(lists_of_anomalies_by_station, use_land_ratio = False):
+
+  return lists_of_anomalies_by_station.groupby(by=['quadrant']).apply(average_by_grid, use_land_ratio)
 
 
 def calculate_trend(average_anomalies_by_year):
@@ -124,10 +133,10 @@ def calculate_trend(average_anomalies_by_year):
 
 
 # For each month class, calculate the annual absolute trend and finally average all trends
-def calculate_absolute_trend(temperatures_by_month):
+def average_trends(temperatures_by_month):
 
   absolute_trends = temperatures_by_month.apply(calculate_trend, axis=1)
 
-  average_absolute_trend = normal_round(absolute_trends.mean(skipna=True), 3)
+  average_absolute_trend = mean_and_round(absolute_trends, 3)
 
   return average_absolute_trend

@@ -10,6 +10,7 @@ import pandas as pd
 import anomaly
 import numpy as np
 from texttable import Texttable
+import time
 
 
 # Collect statistics on the type of data we are getting
@@ -123,8 +124,8 @@ def generate_column_for_output(labels, data):
 
 # Prepare our spreadsheet for output as an Excel File
 def create_excel_file(
-  average_of_stations = [],
-  average_of_stations_divided = [],
+  ungridded_anomalies = [],
+  ungridded_anomalies_divided = [],
 
   average_of_grids = [],
   average_of_grids_divided = [],
@@ -149,11 +150,11 @@ def create_excel_file(
   
   # Prepare each column of the dataframe to be saved
   excel_data["Average of stations"] = generate_column_for_output(
-    [ "All Stations", stations_average_sublabel ], average_of_stations
+    [ "All Stations", stations_average_sublabel ], ungridded_anomalies
   )
 
   excel_data["Average of stations / 100"] = generate_column_for_output(
-    [ "All Stations", stations_average_sublabel ], average_of_stations_divided
+    [ "All Stations", stations_average_sublabel ], ungridded_anomalies_divided
   )
 
   excel_data["Average of Grids"] = generate_column_for_output(
@@ -226,6 +227,24 @@ def print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
   print(f"Please wait a few seconds...")
 
   print(f"\n")
+
+def console_performance(t0, TOTAL_STATIONS):
+
+  end_time = time.perf_counter() - t0
+
+  minutes, remainder_seconds = divmod(end_time, 60)
+
+  hours, remainder_minutes = divmod(minutes, 60)
+
+  seconds  = normal_round(end_time)
+
+  print(f"Process completed in {int(normal_round(hours))}h:{int(normal_round(remainder_minutes))}m:{int(normal_round(remainder_seconds))}s")
+
+  total_minutes = seconds / 60
+
+  stations_per_minute = normal_round(TOTAL_STATIONS / total_minutes)
+
+  print(f"With {'{:,}'.format(TOTAL_STATIONS)} stations, that's {'{:,}'.format(stations_per_minute)} stations/minute.\n")
 
 
 # Print Summaries

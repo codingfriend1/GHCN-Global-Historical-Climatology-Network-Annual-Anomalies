@@ -225,10 +225,10 @@ def set_station_grid_cells(stations):
 Connolly, Ronan & Soon, Willie & Connolly, Michael & Baliunas, Sallie & Berglund, Johan & Butler, C. & Cionco, Rodolfo & Elías, Ana & Fedorov, Valery & Harde, Hermann & Henry, Gregory & Hoyt, Douglas & Humlum, Ole & Legates, David & Luening, Sebastian & Scafetta, Nicola & Solheim, J.-E & Szarka, Laszlo & Van Loon, Harry & Zhang, Weijia. (2021). How much has the Sun influenced Northern Hemisphere temperature trends? An ongoing debate. 
 
 '''
-def determine_grid_weight(grid_label, include_land_ratio_in_weight = False):
+def determine_grid_weight(quadrant, use_land_ratio = False):
 
-  # Extract the center latitude and longitude of the cell from the grid_label
-  mid_latitude = float(grid_label.split(" ")[0])
+  # Extract the center latitude and longitude of the cell from the quadrant
+  mid_latitude = float(quadrant.split(" ")[0])
 
   '''
   Since the grid boxes have smaller surface area closer to the earth's poles, we need to reduce the influence/weight of the smaller boxes to account for the smaller area using the mid-latitude of the grid box
@@ -244,9 +244,9 @@ def determine_grid_weight(grid_label, include_land_ratio_in_weight = False):
   grid_weight = np.cos( mid_latitude * (np.pi / 180 ) )
 
   # If the user wishes to reduce the weight of the grid box further by the percentage of the grid that is made of water, they may enable this in the constants.py file
-  if include_land_ratio_in_weight:
+  if use_land_ratio:
     # Since we are only considering land temperatures and not water, we need to determine the percent of the land that consists of land
-    matching_land_mask_row = land_mask.loc[land_mask['gridbox'] == grid_label].to_numpy()[0]
+    matching_land_mask_row = land_mask.loc[land_mask['gridbox'] == quadrant].to_numpy()[0]
     land_percent = float(matching_land_mask_row[0])
 
     # Since we are only measuring land temperatures, we want to reduce the weight of the grid box by the ratio of land to water
@@ -290,7 +290,7 @@ def get_station_address(station_id, stations):
 
 
 # Get the grid label of the station's assigned grid box
-def get_station_gridbox(station_id, stations):
+def get_station_quadrant(station_id, stations):
 
   station_row = stations.loc[[station_id], ['gridbox']].to_numpy()[0]
 
