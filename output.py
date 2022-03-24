@@ -160,7 +160,7 @@ def create_excel_file(
   )
 
   excel_data["Average of Grids"] = generate_column_for_output(
-    [ "All Grids", "" ], average_of_grids.iloc[1:]
+    [ "All Grids", "" ], average_of_grids
   )
 
   excel_data["Average of Grids / 100"] = generate_column_for_output(
@@ -168,7 +168,7 @@ def create_excel_file(
   )
 
   excel_data["Average of grids weighed with land ratio"] = generate_column_for_output(
-    [ "All Grids", "" ], average_of_grids_by_land_ratio.iloc[1:]
+    [ "All Grids", "" ], average_of_grids_by_land_ratio
   )
 
   excel_data["Average of grids weighed with land ratio / 100"] = generate_column_for_output(
@@ -187,9 +187,9 @@ def create_excel_file(
   else:
 
     # Create a column for each box of our latitude/longitude grid with it's anomalies
-    for grid_cell_label, grid in anomalies_by_grid.iteritems():
+    for grid_cell_label, grid in anomalies_by_grid.iterrows():
 
-      excel_data[grid_cell_label] = grid
+      excel_data[grid_cell_label] = pd.Series(grid).reset_index(drop = True)
 
   output_file(excel_data, data_source)
 

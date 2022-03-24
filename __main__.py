@@ -96,12 +96,12 @@ annual_anomalies_by_grid_of_land = anomaly.average_stations_per_grid(
 gridded_anomalies = anomaly.average_all_grids(annual_anomalies_by_grid)
 
 # Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
-gridded_anomalies_divided = gridded_anomalies.iloc[1:].apply(anomaly.divide_by_one_hundred)
+gridded_anomalies_divided = gridded_anomalies.apply(anomaly.divide_by_one_hundred)
 
 # Also weigh each grid by land ratio
 gridded_anomalies_of_land = anomaly.average_all_grids(annual_anomalies_by_grid_of_land)
 
-gridded_anomalies_of_land_divided = gridded_anomalies_of_land.iloc[1:].apply(anomaly.divide_by_one_hundred)
+gridded_anomalies_of_land_divided = gridded_anomalies_of_land.apply(anomaly.divide_by_one_hundred)
 
 # Finally prepare the data for Excel and save
 output.create_excel_file(
