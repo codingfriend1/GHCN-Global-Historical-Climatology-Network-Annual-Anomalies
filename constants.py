@@ -57,7 +57,7 @@ PRINT_STATION_ANOMALIES = False
 
 # The range to consider when calculating trends for console output, does not effect excel results
 ABSOLUTE_START_YEAR = 1880 # Inclusive
-ABSOLUTE_END_YEAR = 2021 # Non-inclusive
+ABSOLUTE_END_YEAR = 2020 # Non-inclusive
 
 # How many months does each year of data need to include to accept that row of data
 MONTHS_REQUIRED_EACH_YEAR = 12
@@ -67,7 +67,7 @@ MONTHS_REQUIRED_EACH_YEAR = 12
 SURROUNDING_CLASS = ""
 
 # Include a range of countries, use an array of strings of each Country Name
-IN_COUNTRY = False # ['China', 'United States of America', 'Artic', 'Ireland']
+IN_COUNTRY = False #['China', 'United States', 'Artic', 'Ireland'] # ['China', 'United States of America', 'Artic', 'Ireland']
 
 # 
 # Calculated values
