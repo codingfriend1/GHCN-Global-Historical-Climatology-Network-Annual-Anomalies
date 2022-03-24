@@ -38,8 +38,7 @@ annual_anomalies_by_station = []
 # For each station file
 for station_id, temperature_data_for_station in TEMPERATURES:
 
-  # Create an array or arrays for each month for a range of years filling each with data from the station after rejecting unwanted data meeting certain flagged criteria
-  # temperatures_by_month = temperatures.fit_permitted_data_to_range(temperature_data_for_station)
+  # Reindex the station data to fit our year range
   temperatures_by_month = temperature_data_for_station.reindex(YEAR_RANGE_LIST, fill_value=math.nan)
 
   # To convert absolute temperatures to anomalies, you need to have a baseline to compare temperature changes to so you can calculate the anomalies. We will create a separate baseline for each month of the year, averaging the reference years according to the Developer Settings in "constants.py"
@@ -75,13 +74,10 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 output.print_summary_to_console(TOTAL_STATIONS, TEMPERATURES_FILE_PATH)
 
 # If we convert our list of station annual anomalies into a dataframe, it makes it easier to work with.
-annual_anomalies_by_station_dataframe = pd.DataFrame(annual_anomalies_by_station)
-
-annual_anomalies_by_station_dataframe.columns = ['station_id', "location", "quadrant" ] + YEAR_RANGE_LIST
-
-annual_anomalies_by_station_dataframe.set_index('station_id')
-
-annual_anomalies_by_station_dataframe = annual_anomalies_by_station_dataframe
+annual_anomalies_by_station_dataframe = pd.DataFrame(
+  annual_anomalies_by_station,
+  columns = ['station_id', "location", "quadrant" ] + YEAR_RANGE_LIST
+)
 
 # Average annual anomolies across all ungridded stations
 ungridded_anomalies = anomaly.average_anomalies(annual_anomalies_by_station_dataframe, axis=0)
@@ -93,8 +89,7 @@ ungridded_anomalies_divided = ungridded_anomalies.apply(anomaly.divide_by_one_hu
 annual_anomalies_by_grid = anomaly.average_stations_per_grid(annual_anomalies_by_station_dataframe)
 
 annual_anomalies_by_grid_of_land = anomaly.average_stations_per_grid(
-  annual_anomalies_by_station_dataframe, 
-  use_land_ratio = True
+  annual_anomalies_by_station_dataframe, use_land_ratio = True
 )
 
 # Weigh each grid box by the cosine of the mid-latitude point for that grid box (and possibly the land ratio) and average all grid boxes with data. The result is a list of global anomalies by year.

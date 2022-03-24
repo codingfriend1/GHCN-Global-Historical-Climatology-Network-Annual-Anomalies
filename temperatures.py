@@ -17,19 +17,25 @@ from networks import uscrn
 https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
 '''
 
+# Column for the first month reading
+COLUMN_FOR_FIRST_MONTH = 2
 
-# Perhaps the most important piece related to filtering the data. This receives a "month_grouping" which is an array containing a single temperature reading and it's associated flags ([ VALUE, DMFLAG, QCFLAG, DSFLAG ]). Based on this data, we decide whether to return the original reading or provide a missing value (NaN) if we don't trust the flagged data. Custom logic may be added here to alter the acceptable flagged data.
-# 
-def get_permitted_reading(month_grouping):
+'''
+ Returns the temperature reading if the flags are approved, otherwise you may return NaN
+   
+   VALUE: monthly value (MISSING=-9999).  Temperature values are in hundredths of a degree Celsius, but are expressed as whole integers (e.g. divide by 100.0 to get whole degrees Celsius).
 
-  # Extract the temperature reading and flags from the month grouping
-  VALUE = int(month_grouping[0]) if not math.isnan(month_grouping[0]) and month_grouping[0] != MISSING_VALUE else math.nan
-  DMFLAG = month_grouping[1]
-  QCFLAG = month_grouping[2]
-  DSFLAG = month_grouping[3]
+   DMFLAG: data measurement flag
+   
+   QCFLAG: quality control flag
+   
+   DSFLAG: data source flag
+'''
+def get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG):
 
   # If the Developer has chosen to PURGE_Flags, we set as missing as readings that have an Estimated or Quality Control Flag
   return VALUE if not PURGE_FLAGS or (not DMFLAG == 'E' and QCFLAG == ' ') else math.nan
+
 
 def get_station_start_and_end_year(temperature_data_for_station):
 
@@ -42,7 +48,7 @@ def get_station_start_and_end_year(temperature_data_for_station):
   
   return start_year, end_year
 
-
+# Check if the station has enough data during the baseline years to be used
 def has_enough_years(station, minimum_years_needed, REFERENCE_END_YEAR):
 
   rows_of_reference_years = station.loc[(station.name, REFERENCE_START_YEAR):(station.name, REFERENCE_END_YEAR)]
@@ -61,7 +67,9 @@ def get_temperatures_by_station(url, STATIONS):
 
     parsed_row = []
 
-    if NETWORK in ['GHCN', 'USCRN']:
+    # The data comes in different formats depending on the NETWORK we are using.
+
+    if NETWORK == 'GHCN':
 
       parsed_row = ghcn.parse_temperature_row(unparsed_row_string[0])
 
@@ -69,13 +77,25 @@ def get_temperatures_by_station(url, STATIONS):
 
       parsed_row = ushcn.parse_temperature_row(unparsed_row_string[0])
 
-    for index, month_grouping in enumerate(parsed_row[2:]):
+    elif NETWORK == 'USCRN':
 
-      permitted_temperature = get_permitted_reading(month_grouping)
+      parsed_row = ghcn.parse_temperature_row(unparsed_row_string[0])
 
-      parsed_row[2 + index] = permitted_temperature
+    # Get approval for each reading based on its flags
+    for index, month_grouping in enumerate(parsed_row[COLUMN_FOR_FIRST_MONTH:]):
+
+      VALUE, DMFLAG, QCFLAG, DSFLAG = month_grouping
+
+      # Convert the reading to an integer if its not already. Convert missing values to NaN
+      VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
+
+      permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
+
+      parsed_row[COLUMN_FOR_FIRST_MONTH + index] = permitted_temperature
 
     parsed_rows.append(parsed_row)
+
+  # Build a dataframe
 
   columns = ['station_id',  'year'] + month_columns
 
