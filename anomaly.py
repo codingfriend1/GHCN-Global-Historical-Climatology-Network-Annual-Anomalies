@@ -105,7 +105,7 @@ def average_by_grid(stations_in_grid, use_land_ratio = False):
 
 def average_stations_per_grid(lists_of_anomalies_by_station, use_land_ratio = False):
 
-  return lists_of_anomalies_by_station.groupby(by=['quadrant']).apply(average_by_grid, use_land_ratio)
+  return lists_of_anomalies_by_station.groupby('quadrant').apply(average_by_grid, use_land_ratio)
 
 
 def calculate_trend(average_anomalies_by_year):

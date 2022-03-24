@@ -101,7 +101,7 @@ def get_temperatures_by_station(url, STATIONS):
 
   station_temperatures = pd.DataFrame(parsed_rows, columns=columns)
 
-  # Because we can filter stations by environment (ex: rural, urban) or country, we want to limit our selection of temperatures to approved stations
+  # Because we can filter stations by environment (ex: rural, urban) or by country, we want to limit our selection of temperatures to approved stations
   if SURROUNDING_CLASS or IN_COUNTRY:
 
     station_temperatures = station_temperatures[station_temperatures['station_id'].isin(STATIONS.index)]

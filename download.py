@@ -146,6 +146,7 @@ COMPILED_DAILY = 'ghcnd.tavg*.dat'
 # Exception
 
 v3_unadjusted = 'https://www1.ncdc.noaa.gov/pub/data/ghcn/v3/ghcnm.tavg.latest.qcu.tar.gz'
+
 v3_unadjusted_file = 'ghcnm.v3.tavg.latest.qcu.tar.gz'
 
 
