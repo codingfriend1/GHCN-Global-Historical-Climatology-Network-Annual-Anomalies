@@ -160,15 +160,17 @@ def get_stations(station_file_name, country_codes_file_name):
     if 'ARTIC' in UPPERCASE_COUNTRIES:
 
       stations = stations.loc[
-        (stations['country'].isin(UPPERCASE_COUNTRIES)) | 
+        (stations['country'].str.upper().isin(UPPERCASE_COUNTRIES)) | 
         (stations['latitude'] >= ARTIC_CIRCLE_LATITUDE)
       ]
       
     else:
 
       stations = stations.loc[
-        stations['country'].isin(UPPERCASE_COUNTRIES)
+        stations['country'].str.upper().isin(UPPERCASE_COUNTRIES)
       ]
+
+  print(stations)
 
   # Return our parsed and joined table
   return stations
