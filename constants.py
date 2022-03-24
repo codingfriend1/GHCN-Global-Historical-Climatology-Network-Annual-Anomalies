@@ -24,7 +24,7 @@ NETWORK = "GHCN"
   For USHCN - 'v2.5'
   For USCRN - 'v1'
 '''
-VERSION = 'v3'
+VERSION = 'v4'
 
 '''
   Which Quality Controlled dataset of the network to work with
@@ -60,11 +60,11 @@ ABSOLUTE_START_YEAR = 1880 # Inclusive
 ABSOLUTE_END_YEAR = 2021 # Non-inclusive
 
 # How many months does each year of data need to include to accept that row of data
-MONTHS_REQUIRED_EACH_YEAR = 1
+MONTHS_REQUIRED_EACH_YEAR = 12
 
 # Restrict data to only use stations in a certain setting in GHCNm v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
 # SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban", "rural and urban"
-SURROUNDING_CLASS = "rural"
+SURROUNDING_CLASS = ""
 
 # Include a range of countries, use an array of strings of each Country Name
 IN_COUNTRY = False # ['China', 'United States of America', 'Artic', 'Ireland']

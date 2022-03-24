@@ -95,7 +95,9 @@ def compose_file_name(TEMPERATURES_FILE_PATH):
 
   in_country = f"-in-({', '.join(IN_COUNTRY)})" if IN_COUNTRY else ""
 
-  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{reference_timespan}-{acceptable_percent}-{is_purged}{environment}{in_country}.xlsx"
+  minimum_months = f"{MONTHS_REQUIRED_EACH_YEAR}-months"
+
+  OUTPUT_FILE_NAME = f"{TEMPERATURE_FILE}-{reference_timespan}-{acceptable_percent}-{minimum_months}-{is_purged}{environment}{in_country}.xlsx"
 
   return OUTPUT_FILE_NAME
 
@@ -213,6 +215,8 @@ def print_settings_to_console(TEMPERATURES_FILE_PATH, STATION_FILE_PATH):
     ["Trend range", f"{ABSOLUTE_START_YEAR}-{ABSOLUTE_END_YEAR-1}"],
 
     ["Purging flagged data", str(PURGE_FLAGS)],
+
+    ["Required months", str(MONTHS_REQUIRED_EACH_YEAR)],
 
     ["Environment class", str(SURROUNDING_CLASS)],
 

@@ -258,6 +258,10 @@ def determine_grid_weight(quadrant, use_land_ratio = False):
 
 def capitalize_first_letters(string):
 
+  if type(string) != str:
+
+    return ""
+
   string = string.replace("_", " ").replace("  ", " ").lower()
 
   word_array = [i for i in string.split(" ") if i]
