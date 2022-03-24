@@ -81,19 +81,21 @@ def get_temperatures_by_station(url, STATIONS):
 
       parsed_row = ghcn.parse_temperature_row(unparsed_row_string[0])
 
-    # Get approval for each reading based on its flags
-    for index, month_grouping in enumerate(parsed_row[COLUMN_FOR_FIRST_MONTH:]):
+    if parsed_row:
 
-      VALUE, DMFLAG, QCFLAG, DSFLAG = month_grouping
+      # Get approval for each reading based on its flags
+      for index, month_grouping in enumerate(parsed_row[COLUMN_FOR_FIRST_MONTH:]):
 
-      # Convert the reading to an integer if its not already. Convert missing values to NaN
-      VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
+        VALUE, DMFLAG, QCFLAG, DSFLAG = month_grouping
 
-      permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
+        # Convert the reading to an integer if its not already. Convert missing values to NaN
+        VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
 
-      parsed_row[COLUMN_FOR_FIRST_MONTH + index] = permitted_temperature
+        permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
 
-    parsed_rows.append(parsed_row)
+        parsed_row[COLUMN_FOR_FIRST_MONTH + index] = permitted_temperature
+
+      parsed_rows.append(parsed_row)
 
   # Build a dataframe
 
