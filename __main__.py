@@ -39,7 +39,8 @@ annual_anomalies_by_station = []
 for station_id, temperature_data_for_station in TEMPERATURES:
 
   # Create an array or arrays for each month for a range of years filling each with data from the station after rejecting unwanted data meeting certain flagged criteria
-  temperatures_by_month = temperatures.fit_permitted_data_to_range(temperature_data_for_station)
+  # temperatures_by_month = temperatures.fit_permitted_data_to_range(temperature_data_for_station)
+  temperatures_by_month = temperature_data_for_station.reindex(YEAR_RANGE_LIST, fill_value=math.nan)
 
   # To convert absolute temperatures to anomalies, you need to have a baseline to compare temperature changes to so you can calculate the anomalies. We will create a separate baseline for each month of the year, averaging the reference years according to the Developer Settings in "constants.py"
   baseline_by_month = anomaly.average_reference_years_by_month(temperatures_by_month)
@@ -65,7 +66,7 @@ for station_id, temperature_data_for_station in TEMPERATURES:
 
   # We wish to give the Developer a quick reference to the station's starting and ending years.
   start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
-
+  
   station_iteration += 1
 
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_quadrant)
@@ -80,8 +81,10 @@ annual_anomalies_by_station_dataframe.columns = ['station_id', "location", "quad
 
 annual_anomalies_by_station_dataframe.set_index('station_id')
 
+annual_anomalies_by_station_dataframe = annual_anomalies_by_station_dataframe
+
 # Average annual anomolies across all ungridded stations
-ungridded_anomalies = anomaly.average_anomalies(annual_anomalies_by_station_dataframe)
+ungridded_anomalies = anomaly.average_anomalies(annual_anomalies_by_station_dataframe, axis=0)
 
 # Data in GHCNm arrives measured in 100ths of a degree, so we convert it into natural readings
 ungridded_anomalies_divided = ungridded_anomalies.apply(anomaly.divide_by_one_hundred)

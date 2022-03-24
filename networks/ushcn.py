@@ -74,9 +74,6 @@ def parse_temperature_row(unparsed_row_string):
 
   parsed_row = []
 
-  # The first two alpha characters of the STATION_ID represent the abbreviated country code. We can use this to associate the country name with each station. In version 3, the first 3 digits represent the country code.
-  COUNTRY_CODE = str(unparsed_row_string[0:2])
-
   # The ID to associate with the station for this row
   STATION_ID = str(unparsed_row_string[0:11])
 
@@ -84,7 +81,6 @@ def parse_temperature_row(unparsed_row_string):
   YEAR = int(unparsed_row_string[12:16])
 
   # Add our meta information to our parsed row
-  parsed_row.append(COUNTRY_CODE)
   parsed_row.append(STATION_ID)
   parsed_row.append(YEAR)
 

@@ -64,7 +64,7 @@ MONTHS_REQUIRED_EACH_YEAR = 1
 
 # Restrict data to only use stations in a certain setting in GHCNm v3 according to the population class as determined by population (POPCLS) and population class as determined by Satellite night lights (POPCSS)
 # SURROUNDING_CLASS can be "rural", "suburban", "urban", "rural and suburban", or "suburban and urban", "rural and urban"
-SURROUNDING_CLASS = ""
+SURROUNDING_CLASS = "rural"
 
 # Include a range of countries, use an array of strings of each Country Name
 IN_COUNTRY = False # ['China', 'United States of America', 'Artic', 'Ireland']
@@ -87,10 +87,14 @@ SURROUNDING_CLASS = SURROUNDING_CLASS.lower()
 MISSING_VALUE = -9999
 
 YEAR_RANGE = range(YEAR_RANGE_START, YEAR_RANGE_END)
+
 YEAR_RANGE_LIST = list(YEAR_RANGE)
 
 RANGE_OF_REFERENCE_YEARS = range(REFERENCE_START_YEAR, REFERENCE_START_YEAR + REFERENCE_RANGE)
+
 RANGE_OF_REFERENCE_YEARS_LIST = list(YEAR_RANGE)
+
+month_columns = [str(month) for month in range(1,13)]
 
 # Methods
 def normal_round(num, decimals=0):

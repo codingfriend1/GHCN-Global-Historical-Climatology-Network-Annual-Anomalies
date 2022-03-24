@@ -145,20 +145,13 @@ def parse_temperature_row(unparsed_row_string):
 
   parsed_row = []
 
-  # In version 4 of GHCNm, the first two alpha characters of the STATION_ID represent the abbreviated country code. We can use this to associate the country name with each station. In version 3, the first 3 digits represent the country code.
-  COUNTRY_CODE = str(unparsed_row_string[0:2]) if VERSION == "v4" or NETWORK == 'USCRN' else str(unparsed_row_string[0:3])
-
   # The ID to associate with the station for this row
   STATION_ID = str(unparsed_row_string[0:11])
 
   # The Year this row represents
   YEAR = int(unparsed_row_string[11:15])
 
-  # The Element is either TAVG, TMAX, or TMIN. In the dataset used here, this value is always TAVG, which is why we don't add it to our parsed row.
-  ELEMENT = unparsed_row_string[15:19]
-
   # Add our meta information to our parsed row
-  parsed_row.append(COUNTRY_CODE)
   parsed_row.append(STATION_ID)
   parsed_row.append(YEAR)
 

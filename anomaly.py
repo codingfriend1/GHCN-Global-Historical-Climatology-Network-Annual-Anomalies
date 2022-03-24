@@ -13,7 +13,7 @@ def get_minimum_years(data_length):
   
   return math.ceil(ACCEPTABLE_AVAILABLE_DATA_PERCENT * data_length)
 
-def mean_and_round(df, rounding_decimals = 2):
+def mean_and_round(df, rounding_decimals = 2, axis=1):
 
   if isinstance(df, pd.Series):
 
@@ -21,7 +21,7 @@ def mean_and_round(df, rounding_decimals = 2):
 
   else:  
 
-    return df.mean(skipna=True, numeric_only=True).apply(normal_round, args=(rounding_decimals,))
+    return df.mean(skipna=True, numeric_only=True, axis=axis).apply(normal_round, args=(rounding_decimals,))
 
 
 def divide_by_one_hundred(num):
@@ -36,18 +36,18 @@ def mean_if_enough_data(row, minimum_years_needed):
 
 def average_reference_years_by_month(temperatures_by_month):
 
-  reference_years = temperatures_by_month[ RANGE_OF_REFERENCE_YEARS ]
+  reference_years = temperatures_by_month.loc[ RANGE_OF_REFERENCE_YEARS, month_columns ]
 
   minimum_years_needed = get_minimum_years(REFERENCE_RANGE)
 
-  baseline_by_month = reference_years.apply(mean_if_enough_data, args=(minimum_years_needed,), axis=1)
+  baseline_by_month = reference_years.apply(mean_if_enough_data, args=(minimum_years_needed,))
 
   return baseline_by_month
 
 
 def calculate_anomaly(temperature, baseline_by_month):
 
-  month = temperature.name
+  month = int(temperature.name) - 1
 
   reference_average_for_month = baseline_by_month[month]
 
@@ -57,12 +57,12 @@ def calculate_anomaly(temperature, baseline_by_month):
 # Within each month class, calculate annual anomalies using array of fixed reference averages provided
 def calculate_anomalies_by_month(temperatures_by_month, baseline_by_month):
 
-  return temperatures_by_month.apply(calculate_anomaly, args=(baseline_by_month,), axis=1)
+  return temperatures_by_month[ month_columns ].apply(calculate_anomaly, args=(baseline_by_month,))
 
 
-def average_anomalies(lists_of_anomalies):
+def average_anomalies(lists_of_anomalies, axis=1):
 
-  return mean_and_round(lists_of_anomalies)
+  return mean_and_round(lists_of_anomalies, axis=axis)
 
 
 def weighted_avg(df, weights):
@@ -81,9 +81,9 @@ def weighted_avg(df, weights):
 
 def average_all_grids(anomalies_by_grid):
 
-  return anomalies_by_grid.apply(
+  return anomalies_by_grid[ YEAR_RANGE ].apply(
 
-    weighted_avg, args=(anomalies_by_grid['weight'],)
+    weighted_avg, args=(anomalies_by_grid['weight'],),
 
   ).apply(normal_round, args=(2,))
 
@@ -94,7 +94,7 @@ def average_by_grid(stations_in_grid, use_land_ratio = False):
 
   weight = stations.determine_grid_weight(quadrant, use_land_ratio=use_land_ratio)
 
-  average_by_year = mean_and_round(stations_in_grid)
+  average_by_year = mean_and_round(stations_in_grid, axis=0)
 
   index = [ "weight" ] + list(YEAR_RANGE)
 
@@ -135,7 +135,7 @@ def calculate_trend(average_anomalies_by_year):
 # For each month class, calculate the annual absolute trend and finally average all trends
 def average_trends(temperatures_by_month):
 
-  absolute_trends = temperatures_by_month.apply(calculate_trend, axis=1)
+  absolute_trends = temperatures_by_month[ month_columns ].apply(calculate_trend)
 
   average_absolute_trend = mean_and_round(absolute_trends, 3)
 
