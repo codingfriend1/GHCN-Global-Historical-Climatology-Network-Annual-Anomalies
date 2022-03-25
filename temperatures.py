@@ -20,6 +20,17 @@ https://www1.ncdc.noaa.gov/pub/data/ghcn/v4/readme.txt
 # Column for the first month reading
 COLUMN_FOR_FIRST_MONTH = 2
 
+
+data_format_by_network = {
+  
+  'GHCN': ghcn.DATA_COLUMNS,
+
+  'USCRN': uscrn.DATA_COLUMNS,
+
+  'USHCN': ushcn.DATA_COLUMNS,
+
+}
+
 '''
  Returns the temperature reading if the flags are approved, otherwise you may return NaN
    
@@ -38,22 +49,28 @@ def get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG):
 
 
 def parse_temperature_row(
-  unparsed_row, 
-  column_boundries = [(0,11), (11, 15)], 
-  column_types = ([str, int] + ([int, str, str, str] * 12))
-):
 
-  parsed_row = []
+  unparsed_row, 
+
+  column_boundries = [(0,11), (11, 15)], 
+
+  column_types = ([str, int] + ([int, str, str, str] * 12))
+
+):
 
   try:
 
-    for column, bounds in enumerate(column_boundries):
+    parsed_row = []
+
+    for column_index, bounds in enumerate(column_boundries):
 
       column_value = unparsed_row[bounds[0]:bounds[1]]
 
-      column_value_as_type = column_types[column](column_value)
+      column_value_as_type = column_types[column_index](column_value)
 
       parsed_row.append(column_value_as_type)
+
+    return parsed_row
 
   except:
 
@@ -61,17 +78,12 @@ def parse_temperature_row(
 
     return False
 
-  return parsed_row
-
 
 def get_station_start_and_end_year(temperature_data_for_station):
 
-  # Select the first and last row and extract the Year value associated with those rows
-  FIRST_ROW = 0
-  LAST_ROW = len(temperature_data_for_station) - 1
-  
-  start_year = temperature_data_for_station.index[FIRST_ROW]
-  end_year = temperature_data_for_station.index[LAST_ROW]
+  start_year = temperature_data_for_station.index[0]
+
+  end_year = temperature_data_for_station.index[-1]
   
   return start_year, end_year
 
@@ -84,6 +96,29 @@ def has_enough_years(station, minimum_years_needed):
   return len(rows_of_reference_years) >= minimum_years_needed
 
 
+def approve_and_simplify_row(parsed_row):
+
+  simplified_row = parsed_row[ 0 : COLUMN_FOR_FIRST_MONTH ]
+
+  # Loop through all 12 months in the parsed row, 4 columns at a time (for the value and its flags)
+  for month_column in range(0, 12 * 4, 4):
+
+    current_column = COLUMN_FOR_FIRST_MONTH + month_column
+
+    VALUE, DMFLAG, QCFLAG, DSFLAG = parsed_row[ current_column : current_column + 4 ]
+
+    # Convert the reading to an integer if its not already. Convert missing values to NaN
+    VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
+
+    # Get approval for each reading based on its flags
+    permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
+
+    # Only include the approved temperature in the simplified row, leaving out the flags
+    simplified_row = simplified_row + [ permitted_temperature ]
+
+  return simplified_row
+
+
 def get_temperatures_by_station(url, STATIONS):
 
   # Read the station's temperature file, each row will be a plain string and will not be parsed or separated already into a dataframe. Although this is inconvenient to manually parse each row before converting into a dataframe, it massively improves performance.
@@ -93,54 +128,17 @@ def get_temperatures_by_station(url, STATIONS):
 
   for unparsed_row_string in unparsed_station_data.values:
 
-    parsed_row = []
-
-    data_columns = []
-
-    if NETWORK == 'GHCN':
-
-      data_columns = ghcn.DATA_COLUMNS
-
-    elif NETWORK == 'USCRN':
-
-      data_columns = uscrn.DATA_COLUMNS
-
-    elif NETWORK == 'USHCN':
-
-      data_columns = ushcn.DATA_COLUMNS
-
-    parsed_row = parse_temperature_row(unparsed_row_string[0], column_boundries=data_columns)
+    parsed_row = parse_temperature_row(unparsed_row_string[0], data_format_by_network[NETWORK])
 
     if parsed_row:
 
-      simplified_row = parsed_row[ 0 : COLUMN_FOR_FIRST_MONTH ]
-
-      
-
-      # Loop through all 12 months in the parsed row, 4 columns at a time (1 for the value and 3 for the associated flags)
-      for month_column in range(0, 12 * 4, 4):
-
-        current_column = COLUMN_FOR_FIRST_MONTH + month_column
-
-        VALUE, DMFLAG, QCFLAG, DSFLAG = parsed_row[ current_column : current_column + 4 ]
-
-        # Convert the reading to an integer if its not already. Convert missing values to NaN
-        VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
-
-        # Get approval for each reading based on its flags
-        permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
-
-        # Only include the approved temperature in the simplified row, leaving out the flags
-        simplified_row = simplified_row + [ permitted_temperature ]
+      simplified_row = approve_and_simplify_row(parsed_row)
 
       parsed_rows.append(simplified_row)
 
+  station_temperatures = pd.DataFrame(parsed_rows, columns=['station_id',  'year'] + month_columns)
 
-  columns = ['station_id',  'year'] + month_columns
-
-  station_temperatures = pd.DataFrame(parsed_rows, columns=columns)
-
-  # Because we can filter stations by environment (ex: rural, urban) or by country, we want to limit our selection of temperatures to approved stations
+  # Stations may be filtered by environment or country, therefore we only use temperature data from approved stations
   if SURROUNDING_CLASS or IN_COUNTRY:
 
     station_temperatures = station_temperatures[station_temperatures['station_id'].isin(STATIONS.index)]
