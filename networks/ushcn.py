@@ -1,8 +1,12 @@
-from constants import *
+from globals import *
 import pandas as pd
 import numpy as np
 import glob
 import os
+
+
+# When parsing rows for the temperature files for this network, these set the bounds for each column
+DATA_COLUMNS = [(0,11), (12, 16)] + generate_month_boundaries([6,7,8,9], 16)
 
 def compile_station_files_into_dat_file(station_files):
 
@@ -70,54 +74,3 @@ def get_stations(station_file_name):
 
   return stations
 
-def parse_temperature_row(unparsed_row_string):
-
-  parsed_row = []
-
-  # The ID to associate with the station for this row
-  STATION_ID = str(unparsed_row_string[0:11])
-
-  # The Year this row represents
-  YEAR = int(unparsed_row_string[12:16])
-
-  # Add our meta information to our parsed row
-  parsed_row.append(STATION_ID)
-  parsed_row.append(YEAR)
-
-  # Each month in the year requires 8 characters to fit the Temperature Reading (6 characters), Data Measurement Flag (1 character), Quality Control Flag (1 character), and Data Source Flag (1 character). We'll loop through each month counting 8 characters at a time from the character index of Jan to the ending character index of Dec.
-  START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE = 16
-  END_CHARACTER_INDEX_FOR_DEC = 124
-  NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH = 9
-
-  # For each month in the unparsed row string
-  for index in range(
-    START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE, 
-    END_CHARACTER_INDEX_FOR_DEC, 
-    NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH
-  ):
-
-    try:
-      
-      # Extract the temperature reading value for the current month and convert it to an integer
-      VALUE = int(unparsed_row_string[index:index + 6])
-
-      # If the value is -9999 (meaning it's missing) convert it to NaN for better averaging in Python and Excel
-      VALUE = VALUE if VALUE != MISSING_VALUE else math.nan
-
-      # Extract each flag associated with this temperature reading
-      DMFLAG = str(unparsed_row_string[index + 6:index + 7])
-      QCFLAG = str(unparsed_row_string[index + 7:index + 8])
-      DSFLAG = str(unparsed_row_string[index + 8:index + 9])
-
-      # Combine the temperature reading and flags into an array
-      value_set = [ VALUE, DMFLAG, QCFLAG, DSFLAG ]
-
-      # Save that array as a column for this parsed row
-      parsed_row.append(value_set)
-
-    # We don't want the program to crash if one row has a problem, so we catch the mistake, discard that row and keep moving
-    except:
-      print('Error parsing row', unparsed_row_string)
-      return False
-
-  return parsed_row

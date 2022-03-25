@@ -1,8 +1,12 @@
-from constants import *
+from globals import *
 import pandas as pd
 import numpy as np
 import glob
 import daily
+
+# When parsing rows for the temperature files for this network, these set the bounds for each column
+DATA_COLUMNS = [(0,11), (11, 15)] + generate_month_boundaries([5,6,7,8], 19)
+
 
 def get_files():
 
@@ -108,87 +112,3 @@ def get_stations(station_file_name, country_codes_file_name):
   stations = merge_with_country_names(stations, country_codes_file_name)
 
   return stations
-
-
-'''
-2.2.1 DATA FORMAT
-
-  Variable          Columns      Type
-  --------          -------      ----
-
-  ID                 1-11        Integer
-  YEAR              12-15        Integer
-  ELEMENT           16-19        Character
-  VALUE1            20-24        Integer
-  DMFLAG1           25-25        Character
-  QCFLAG1           26-26        Character
-  DSFLAG1           27-27        Character
-    .                 .             .
-    .                 .             .
-    .                 .             .
-  VALUE12          108-112       Integer
-  DMFLAG12         113-113       Character
-  QCFLAG12         114-114       Character
-  DSFLAG12         115-115       Character
-
-  Variable Definitions:
-
-  ID: Station identification code. First two characters are FIPS country code
-
-  YEAR: 4 digit year of the station record.
-
-  ELEMENT: element type, monthly mean temperature="TAVG"
-
-When splitting the unparsed row string, we start each snippet of data one character index early since the first character is inclusive in programming languages, but they may end with the same character index because the final character is not inclusive
-'''
-def parse_temperature_row(unparsed_row_string):
-
-  parsed_row = []
-
-  # The ID to associate with the station for this row
-  STATION_ID = str(unparsed_row_string[0:11])
-
-  # The Year this row represents
-  YEAR = int(unparsed_row_string[11:15])
-
-  # Add our meta information to our parsed row
-  parsed_row.append(STATION_ID)
-  parsed_row.append(YEAR)
-
-  # Each month in the year requires 8 characters to fit the Temperature Reading (5 characters), Data Measurement Flag (1 character), Quality Control Flag (1 character), and Data Source Flag (1 character). We'll loop through each month counting 8 characters at a time from the character index of Jan to the ending character index of Dec.
-  START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE = 19
-  END_CHARACTER_INDEX_FOR_DEC = 115
-  NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH = 8
-
-  # For each month in the unparsed row string
-  for index in range(
-    START_CHARACTER_INDEX_FOR_JAN_TEMPERATURE, 
-    END_CHARACTER_INDEX_FOR_DEC, 
-    NUMBER_OF_CHARACTERS_NEEDED_FOR_EACH_MONTH
-  ):
-
-    try:
-      
-      # Extract the temperature reading value for the current month and convert it to an integer
-      VALUE = int(unparsed_row_string[index:index + 5])
-
-      # If the value is -9999 (meaning it's missing) convert it to NaN for better averaging in Python and Excel
-      VALUE = VALUE if VALUE != MISSING_VALUE else math.nan
-
-      # Extract each flag associated with this temperature reading
-      DMFLAG = str(unparsed_row_string[index + 5:index + 6])
-      QCFLAG = str(unparsed_row_string[index + 6:index + 7])
-      DSFLAG = str(unparsed_row_string[index + 7:index + 8])
-
-      # Combine the temperature reading and flags into an array
-      value_set = [ VALUE, DMFLAG, QCFLAG, DSFLAG ]
-
-      # Save that array as a column for this parsed row
-      parsed_row.append(value_set)
-
-    # We don't want the program to crash if one row has a problem, so we catch the mistake, discard that row and keep moving
-    except:
-      print('Error parsing row', unparsed_row_string)
-      return False
-
-  return parsed_row

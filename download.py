@@ -47,7 +47,7 @@
 
 '''
 
-from constants import *
+from globals import *
 
 import urllib.request
 import tarfile

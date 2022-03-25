@@ -6,7 +6,7 @@
   https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
 '''
 
-from constants import *
+from globals import *
 import pandas as pd
 import numpy as np
 from termcolor import colored, cprint

@@ -3,7 +3,7 @@
   Date Created: March 11, 2022
 '''
 
-from constants import *
+from globals import *
 import pandas as pd
 import math
 import os
@@ -37,6 +37,33 @@ def get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG):
   return VALUE if not PURGE_FLAGS or (not DMFLAG == 'E' and QCFLAG == ' ') else math.nan
 
 
+def parse_temperature_row(
+  unparsed_row, 
+  column_boundries = [(0,11), (11, 15)], 
+  column_types = ([str, int] + ([int, str, str, str] * 12))
+):
+
+  parsed_row = []
+
+  try:
+
+    for column, bounds in enumerate(column_boundries):
+
+      column_value = unparsed_row[bounds[0]:bounds[1]]
+
+      column_value_as_type = column_types[column](column_value)
+
+      parsed_row.append(column_value_as_type)
+
+  except:
+
+    print('Error parsing row', unparsed_row)
+
+    return False
+
+  return parsed_row
+
+
 def get_station_start_and_end_year(temperature_data_for_station):
 
   # Select the first and last row and extract the Year value associated with those rows
@@ -59,45 +86,50 @@ def has_enough_years(station, minimum_years_needed, REFERENCE_END_YEAR):
 def get_temperatures_by_station(url, STATIONS):
 
   # Read the station's temperature file, each row will be a plain string and will not be parsed or separated already into a dataframe. Although this is inconvenient to manually parse each row before converting into a dataframe, it massively improves performance.
-  station_temperature_data_file = pd.read_csv(url, sep="\t", header=None, low_memory=False)
+  unparsed_station_data = pd.read_csv(url, sep="\t", header=None, low_memory=False)
 
   parsed_rows = []
 
-  for unparsed_row_string in station_temperature_data_file.values:
+  for unparsed_row_string in unparsed_station_data.values:
 
     parsed_row = []
 
-    # The data comes in different formats depending on the NETWORK we are using.
+    data_columns = []
 
     if NETWORK == 'GHCN':
 
-      parsed_row = ghcn.parse_temperature_row(unparsed_row_string[0])
-
-    elif NETWORK == 'USHCN':
-
-      parsed_row = ushcn.parse_temperature_row(unparsed_row_string[0])
+      data_columns = ghcn.DATA_COLUMNS
 
     elif NETWORK == 'USCRN':
 
-      parsed_row = ghcn.parse_temperature_row(unparsed_row_string[0])
+      data_columns = uscrn.DATA_COLUMNS
+
+    elif NETWORK == 'USHCN':
+
+      data_columns = ushcn.DATA_COLUMNS
+
+    parsed_row = parse_temperature_row(unparsed_row_string[0], column_boundries=data_columns)
 
     if parsed_row:
 
-      # Get approval for each reading based on its flags
-      for index, month_grouping in enumerate(parsed_row[COLUMN_FOR_FIRST_MONTH:]):
+      simplified_row = parsed_row[ 0 : COLUMN_FOR_FIRST_MONTH ]
 
-        VALUE, DMFLAG, QCFLAG, DSFLAG = month_grouping
+      # Get approval for each reading based on its flags
+      for month_column in range(0, 12 * 4, 4):
+
+        current_column = COLUMN_FOR_FIRST_MONTH + month_column
+
+        VALUE, DMFLAG, QCFLAG, DSFLAG = parsed_row[ current_column : current_column + 4 ]
 
         # Convert the reading to an integer if its not already. Convert missing values to NaN
         VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
 
         permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
 
-        parsed_row[COLUMN_FOR_FIRST_MONTH + index] = permitted_temperature
+        simplified_row = simplified_row + [ permitted_temperature ]
 
-      parsed_rows.append(parsed_row)
+      parsed_rows.append(simplified_row)
 
-  # Build a dataframe
 
   columns = ['station_id',  'year'] + month_columns
 
@@ -119,7 +151,9 @@ def get_temperatures_by_station(url, STATIONS):
   REFERENCE_END_YEAR = REFERENCE_START_YEAR + REFERENCE_RANGE - 1
 
   station_temperatures = station_temperatures.groupby('station_id').filter(
+
     lambda station: has_enough_years(station, minimum_years_needed, REFERENCE_END_YEAR)
+    
   )
 
   return station_temperatures.reset_index().set_index('year').groupby('station_id')

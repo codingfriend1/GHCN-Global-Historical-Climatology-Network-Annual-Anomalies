@@ -3,7 +3,7 @@
   Date Created: March 11, 2022
 '''
 
-from constants import *
+from globals import *
 import download
 import math
 import pandas as pd

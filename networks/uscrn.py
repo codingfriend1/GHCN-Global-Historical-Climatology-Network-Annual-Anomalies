@@ -6,7 +6,7 @@
   https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt
 '''
 
-from constants import *
+from globals import *
 import pandas as pd
 import numpy as np
 import glob
@@ -15,7 +15,11 @@ import urllib.request
 from termcolor import colored, cprint
 import os
 
+# When parsing rows for the temperature files for this network, these set the bounds for each column
+DATA_COLUMNS = [(0,11), (11, 15)] + generate_month_boundaries([5,6,7,8], 19)
+
 check_mark = colored(u'\u2713', 'green', attrs=['bold'])
+
 attention_mark = colored('!', 'yellow', attrs=['bold'])
 
 # All GHCNd .dly station files have 31 days even if some days are missing
