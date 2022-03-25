@@ -75,8 +75,9 @@ def get_station_start_and_end_year(temperature_data_for_station):
   
   return start_year, end_year
 
+
 # Check if the station has enough data during the baseline years to be used
-def has_enough_years(station, minimum_years_needed, REFERENCE_END_YEAR):
+def has_enough_years(station, minimum_years_needed):
 
   rows_of_reference_years = station.loc[(station.name, REFERENCE_START_YEAR):(station.name, REFERENCE_END_YEAR)]
 
@@ -114,7 +115,9 @@ def get_temperatures_by_station(url, STATIONS):
 
       simplified_row = parsed_row[ 0 : COLUMN_FOR_FIRST_MONTH ]
 
-      # Get approval for each reading based on its flags
+      
+
+      # Loop through all 12 months in the parsed row, 4 columns at a time (1 for the value and 3 for the associated flags)
       for month_column in range(0, 12 * 4, 4):
 
         current_column = COLUMN_FOR_FIRST_MONTH + month_column
@@ -124,8 +127,10 @@ def get_temperatures_by_station(url, STATIONS):
         # Convert the reading to an integer if its not already. Convert missing values to NaN
         VALUE = int(VALUE) if not math.isnan(VALUE) and VALUE != MISSING_VALUE else math.nan
 
+        # Get approval for each reading based on its flags
         permitted_temperature = get_permitted_reading(VALUE, DMFLAG, QCFLAG, DSFLAG)
 
+        # Only include the approved temperature in the simplified row, leaving out the flags
         simplified_row = simplified_row + [ permitted_temperature ]
 
       parsed_rows.append(simplified_row)
@@ -147,12 +152,10 @@ def get_temperatures_by_station(url, STATIONS):
 
   # Drop stations with not enough years in the baseline range
   minimum_years_needed = anomaly.get_minimum_years(REFERENCE_RANGE)
-  
-  REFERENCE_END_YEAR = REFERENCE_START_YEAR + REFERENCE_RANGE - 1
 
   station_temperatures = station_temperatures.groupby('station_id').filter(
 
-    lambda station: has_enough_years(station, minimum_years_needed, REFERENCE_END_YEAR)
+    lambda station: has_enough_years(station, minimum_years_needed)
     
   )
 

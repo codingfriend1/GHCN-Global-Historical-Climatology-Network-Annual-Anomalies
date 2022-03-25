@@ -36,6 +36,7 @@ RANGE_OF_REFERENCE_YEARS_LIST = list(YEAR_RANGE)
 
 month_columns = [str(month) for month in range(1,13)]
 
+REFERENCE_END_YEAR = REFERENCE_START_YEAR + REFERENCE_RANGE - 1
 
 '''
   Global Methods
