@@ -136,7 +136,7 @@ def get_temperatures_by_station(url, STATIONS):
 
       parsed_rows.append(simplified_row)
 
-  station_temperatures = pd.DataFrame(parsed_rows, columns=['station_id',  'year'] + month_columns)
+  station_temperatures = pd.DataFrame(parsed_rows, columns=['station_id',  'year'] + MONTH_COLUMNS)
 
   # Stations may be filtered by environment or country, therefore we only use temperature data from approved stations
   if SURROUNDING_CLASS or IN_COUNTRY:
@@ -146,7 +146,7 @@ def get_temperatures_by_station(url, STATIONS):
   station_temperatures.set_index([ 'station_id', 'year'], inplace=True)
 
   # Drop rows with too many null months
-  station_temperatures.dropna(thresh=MONTHS_REQUIRED_EACH_YEAR, subset=month_columns, inplace=True)
+  station_temperatures.dropna(thresh=MONTHS_REQUIRED_EACH_YEAR, subset=MONTH_COLUMNS, inplace=True)
 
   # Drop stations with not enough years in the baseline range
   minimum_years_needed = anomaly.get_minimum_years(REFERENCE_RANGE)

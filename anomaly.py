@@ -36,7 +36,7 @@ def mean_if_enough_data(row, minimum_years_needed):
 
 def average_reference_years_by_month(temperatures_by_month):
 
-  reference_years = temperatures_by_month.loc[ RANGE_OF_REFERENCE_YEARS, month_columns ]
+  reference_years = temperatures_by_month.loc[ RANGE_OF_REFERENCE_YEARS, MONTH_COLUMNS ]
 
   minimum_years_needed = get_minimum_years(REFERENCE_RANGE)
 
@@ -57,7 +57,7 @@ def calculate_anomaly(temperature, baseline_by_month):
 # Within each month class, calculate annual anomalies using array of fixed reference averages provided
 def calculate_anomalies_by_month(temperatures_by_month, baseline_by_month):
 
-  return temperatures_by_month[ month_columns ].apply(calculate_anomaly, args=(baseline_by_month,))
+  return temperatures_by_month[ MONTH_COLUMNS ].apply(calculate_anomaly, args=(baseline_by_month,))
 
 
 def average_anomalies(lists_of_anomalies, axis=1):
@@ -135,7 +135,7 @@ def calculate_trend(average_anomalies_by_year):
 # For each month class, calculate the annual absolute trend and finally average all trends
 def average_trends(temperatures_by_month):
 
-  absolute_trends = temperatures_by_month[ month_columns ].apply(calculate_trend)
+  absolute_trends = temperatures_by_month[ MONTH_COLUMNS ].apply(calculate_trend)
 
   average_absolute_trend = mean_and_round(absolute_trends, 3)
 
