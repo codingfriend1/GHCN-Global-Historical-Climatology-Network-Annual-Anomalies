@@ -76,12 +76,11 @@ def get_stations(station_file_name, country_codes_file_name):
     'latitude': np.float64,
     'longitude': np.float64,
     'elevation': np.float64,
-    'name': np.object
+    'name': np.object,
+    'country_code': "object"
   }
 
   if VERSION == "v3":
-
-    names = ['country_code', 'station_id',  'latitude', 'longitude', 'elevation', 'name']
 
     colspecs = [(0,3), (0,11), (11,20), (21,30), (69,73), (38,68)]
 
@@ -91,13 +90,9 @@ def get_stations(station_file_name, country_codes_file_name):
 
     colspecs = [(0,2), (0,12), (12,21), (21,31), (31,38), (38,69)]
 
-    dtypes['country_code'] = "object"
-
   elif VERSION == "daily":
 
     colspecs = [(0,2), (0,12), (12,20), (21,30), (31,37), (41,71)]
-
-    dtypes['country_code'] = "object"
 
   stations = pd.read_fwf(
     station_file_name, 

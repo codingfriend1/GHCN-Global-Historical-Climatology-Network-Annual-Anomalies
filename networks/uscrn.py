@@ -51,6 +51,7 @@ def download_and_compile_uscrn_data(compiled_file, folder_name, url):
     if len(matching_extracted_uscrn_files):
 
       print(f"{check_mark} Found '{folder_name}':")
+
       print(f'  {check_mark} ' + f'\n  {check_mark} '.join(matching_extracted_uscrn_files))
 
     # If not, download the USCRN data
@@ -62,6 +63,7 @@ def download_and_compile_uscrn_data(compiled_file, folder_name, url):
 
       # Make a folder to save the USCRN station files to
       if not os.path.exists(folder_name):
+
         os.mkdir(folder_name)
 
       # Read the link to all the station files
@@ -88,6 +90,7 @@ def download_and_compile_uscrn_data(compiled_file, folder_name, url):
           station_files.append(station_file_path) 
 
       print(f"  {check_mark} Downloaded:")
+
       print(f'    {check_mark} ' + f'\n  {check_mark} '.join(station_files))
 
     TEMPERATURES_FILE_PATH = compile_uscrn_data(VERSION, folder_name)
@@ -310,7 +313,9 @@ def gather_station_files(FOLDER_WITH_DAILY_DATA):
 
   # Create an array of all our .dly station file URLs
   for station_file_url in all_stations:
+
     if 'CRN' in station_file_url and station_file_url.endswith('.txt'):
+
       station_files.append(os.path.join(FOLDER_WITH_DAILY_DATA, station_file_url))
 
   return station_files
@@ -369,7 +374,9 @@ def compile_uscrn_data(VERSION, FOLDER_WITH_DAILY_DATA):
 
     # Convert the vertical months, into horizontal ones across each year
     station_daily_values = station_daily_values.pivot(
+
       index=['station_id', 'year'], columns='month', values='tavg'
+      
     ).reset_index()
 
     # If the file has 12 columns, one for each month
@@ -384,6 +391,7 @@ def compile_uscrn_data(VERSION, FOLDER_WITH_DAILY_DATA):
         for month in range(1, 13):
 
           month_string = str(row[month]).replace('<NA>', '-9999').rjust(5, " ")
+
           output_row_string = output_row_string + f"{month_string}   "
 
         # Add the representative line to the output file
