@@ -203,21 +203,27 @@ def set_station_grid_cells(stations):
 
   # Latitude
   mid_latitude = -90 + (GRID_SIZE / 2)
+  
   stations['latitude_cell'] = 0
 
   for x in range(-90, 90, GRID_SIZE):
+
     stations.loc[stations['latitude'].between(x, x + GRID_SIZE), 'latitude_cell'] = mid_latitude
+
     mid_latitude = mid_latitude + GRID_SIZE
 
   # Longitude
   mid_longitude = -180 + (GRID_SIZE / 2)
+
   stations['longitude_cell'] = 0
 
   for x in range(-180, 180, GRID_SIZE):
+
     stations.loc[stations['longitude'].between(x, x + GRID_SIZE), 'longitude_cell'] = mid_longitude
+
     mid_longitude = mid_longitude + GRID_SIZE
 
-  stations['gridbox'] = stations['latitude_cell'].map(str) + " lat " + stations['longitude_cell'].map(str) + " lon"
+  stations['quadrant'] = stations['latitude_cell'].map(str) + " lat " + stations['longitude_cell'].map(str) + " lon"
 
   return stations
 
@@ -249,6 +255,7 @@ def determine_grid_weight(quadrant, use_land_ratio = False):
   if use_land_ratio:
     # Since we are only considering land temperatures and not water, we need to determine the percent of the land that consists of land
     matching_land_mask_row = land_mask.loc[land_mask['gridbox'] == quadrant].to_numpy()[0]
+
     land_percent = float(matching_land_mask_row[0])
 
     # Since we are only measuring land temperatures, we want to reduce the weight of the grid box by the ratio of land to water
@@ -257,6 +264,7 @@ def determine_grid_weight(quadrant, use_land_ratio = False):
   else:
 
     return normal_round(grid_weight, 4)
+
 
 def capitalize_first_letters(string):
 
@@ -271,36 +279,30 @@ def capitalize_first_letters(string):
   return " ".join(word[0].upper() + word[1:] for word in word_array)
 
 
-# Return the name and country for a provided station_id
-def get_station_address(station_id, stations):
+def get_station_metadata(station_id, stations):
 
   station_row = []
 
+  needed_fields = ['quadrant', 'name']
+
   if NETWORK == 'GHCN':
 
-    station_row = stations.loc[[station_id], ['name', 'country']].to_numpy()[0]
+    needed_fields.append('country')
 
   elif NETWORK in ['USHCN', 'USCRN']:
 
-    station_row = stations.loc[[station_id], ['name', 'state']].to_numpy()[0]
+    needed_fields.append('state')
+
+  station_row = stations.loc[[station_id], needed_fields].to_numpy()[0]
 
   if not len(station_row):
     
-    return 'Unknown'
+    return 'Unknown', 'Unknown'
 
-  station_name = capitalize_first_letters(station_row[0])
+  station_quadrant = station_row[0]
 
-  station_province = capitalize_first_letters(station_row[1])
+  station_name = capitalize_first_letters(station_row[1])
 
-  return f"{station_name}, {station_province}"
+  station_province = capitalize_first_letters(station_row[2])
 
-
-# Get the grid label of the station's assigned grid box
-def get_station_quadrant(station_id, stations):
-
-  station_row = stations.loc[[station_id], ['gridbox']].to_numpy()[0]
-
-  if not len(station_row):
-    return False
-
-  return station_row[0]
+  return f"{station_name}, {station_province}", station_quadrant

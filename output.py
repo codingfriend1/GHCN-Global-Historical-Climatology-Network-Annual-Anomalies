@@ -28,7 +28,7 @@ def get_file_name_from_path(FILE_PATH):
 
   return split_file_path[len(split_file_path) - 1]
 
-def compose_station_console_output(station_iteration, total_stations, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_gridbox):
+def compose_station_console_output(station_iteration, total_stations, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_quadrant):
 
   which_station = f"Station {'{:,}'.format(station_iteration)} of {'{:,}'.format(total_stations)}"
 
@@ -42,7 +42,7 @@ def compose_station_console_output(station_iteration, total_stations, station_id
 
   year_range = f"{start_year}-{end_year}"
 
-  padded_station_grid_box = station_gridbox.ljust(19, ' ')
+  padded_station_grid_box = station_quadrant.ljust(19, ' ')
 
   station_location = station_location.replace("  ", " ").replace("\t", " ").strip()
 

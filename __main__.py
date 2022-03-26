@@ -50,9 +50,7 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   # For each year, average the anomalies for all 12 months and return an list of average anomalies by year. It is ok if some months are missing data since we first converted them to anomalies before averaging.
   average_anomalies_by_year = anomaly.average_anomalies(anomalies_by_month)
 
-  station_location = stations.get_station_address(station_id, STATIONS)
-
-  station_quadrant = stations.get_station_quadrant(station_id, STATIONS)
+  station_location, station_quadrant = stations.get_station_metadata(station_id, STATIONS)
 
   # Add important metadata to the beginning of each station's column (station's ID, station's location, and station's grid box label). The grid box label is important if we wish to average by grid instead of by station.
   annual_anomalies_and_metadata = [station_id, station_location, station_quadrant] + list(average_anomalies_by_year)
