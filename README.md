@@ -58,7 +58,7 @@ Settings may be adjusted in `constants.py` before running the program:
 
  - `SURROUNDING_CLASS` (`"rural"`, `"suburban"`, `"urban"`, `"rural and suburban"`, or `"suburban and urban"`) - For version 3 of GHCNm only, this limits the stations used in the calculations to those marked with a particular surrounding environment according to the population class (`POPCLS`) and population class as determined by Satellite night lights (`POPCSS`). When both POPCLS and POPCSS are rural, a station is marked as rural. When both POPCLS and POPCSS are urban, a station is marked as urban. Suburban includes everything in-between.
 
- - `IN_COUNTRY` (Ex: `['China', 'United States of America', 'Ireland', 'Artic']`) - Limit the stations in GHCN v3 to stations from a range of countries. Should be provided as an array. This works in `v3`, `v4`, and `daily` GHCN data, but the country names will have subtle differences depending on the version you use. For example, in v3 if you want the USA, you would write "United States of America", but in v4 yo would say, "United States". Refer to the country codes file for that version to get the exact name.
+ - `IN_COUNTRY` (Ex: `['China', 'United States of America', 'Ireland', 'Artic']`) - Limit the stations in GHCN to stations from a range of countries. Should be provided as an array. This works in `v3`, `v4`, and `daily` GHCN data, but the country names will have subtle differences depending on the version you use. For example, in v3 if you want the USA, you would write "United States of America", but in v4 you would say, "United States". Refer to the country codes file for that version to get the exact name.
 
 ## Steps
 
