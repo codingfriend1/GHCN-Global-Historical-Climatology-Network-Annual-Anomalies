@@ -14,7 +14,7 @@ No adjustments or algorithms are run on the data, unless you choose to remove fl
 - Author: Jon Paul Miles
 - Date Created: March 11, 2022
 
-## Diclaimer
+## Disclaimer
 I am not a scientist. I'm an experienced web developer with an interest in researching the truth about global warming as a hobby, but I hope the transparency of my process will show that my methods are reliable and offer a competent understanding of the raw, unadjusted data.
 
 ## License

@@ -5,10 +5,7 @@
 
 from globals import *
 import pandas as pd
-import numpy as np
 import math
-import os
-import datetime
 import time
 
 import download
@@ -38,6 +35,9 @@ annual_anomalies_by_station = []
 # For each station file
 for station_id, temperature_data_for_station in TEMPERATURES:
 
+  # We wish to give the Developer a quick reference to the station's starting and ending years.
+  start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
+
   # Reindex the station data to fit our year range
   temperatures_by_month = temperature_data_for_station.reindex(YEAR_RANGE_LIST, fill_value=math.nan)
 
@@ -60,10 +60,7 @@ for station_id, temperature_data_for_station in TEMPERATURES:
   absolute_trend = anomaly.average_trends(temperatures_by_month)
 
   absolute_visual = output.update_statistics(absolute_trend)
-
-  # We wish to give the Developer a quick reference to the station's starting and ending years.
-  start_year, end_year = temperatures.get_station_start_and_end_year(temperature_data_for_station)
-  
+    
   station_iteration += 1
 
   output.compose_station_console_output(station_iteration, TOTAL_STATIONS, station_id, absolute_visual, absolute_trend, start_year, end_year, station_location, station_quadrant)
